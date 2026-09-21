@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 
 namespace OrdemGo.Services
 {
-    public class ClienteService.csClienteService
+    public class ClienteService
     {
-        
     }
 }

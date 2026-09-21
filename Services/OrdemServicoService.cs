@@ -7,6 +7,5 @@ namespace OrdemGo.Services
 {
     public class OrdemServicoService
     {
-        
     }
 }

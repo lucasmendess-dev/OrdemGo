@@ -7,6 +7,5 @@ namespace OrdemGo.DAO
 {
     public class ClienteDAO
     {
-        
     }
 }

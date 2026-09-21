@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 
 namespace OrdemGo.DAO
 {
-    public class OrdemServicoDAO.csOrdemServicoDAO
+    public class OrdemServicoDAO
     {
-        
     }
 }
