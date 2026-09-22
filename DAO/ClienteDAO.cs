@@ -26,4 +26,20 @@ public class ClienteDAO
         await _context.Clientes.AddAsync(cliente);
         await _context.SaveChangesAsync();
     }
+
+    public Task<Cliente?> ObterPorIdAsync(int id)
+    {
+        return _context.Clientes.FirstOrDefaultAsync(cliente => cliente.Id == id);
+    }
+
+    public Task SalvarAlteracoesAsync()
+    {
+        return _context.SaveChangesAsync();
+    }
+
+    public async Task ExcluirAsync(Cliente cliente)
+    {
+        _context.Clientes.Remove(cliente);
+        await _context.SaveChangesAsync();
+    }
 }

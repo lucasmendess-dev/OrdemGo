@@ -12,6 +12,13 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
 }
+@if (TempData["MensagemErro"] is string mensagemErro)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @mensagemErro
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+}
 
 <div class="clientes-page-header">
     <div>
@@ -99,7 +106,19 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <button type="button" class="dropdown-item">
+                                            <button type="button"
+                                                    class="dropdown-item js-ver-cliente"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalCliente"
+                                                    data-cliente-id="@cliente.Id"
+                                                    data-cliente-nome="@cliente.Nome"
+                                                    data-cliente-cpf="@cliente.CPF"
+                                                    data-cliente-telefone="@cliente.Telefone"
+                                                    data-cliente-email="@cliente.Email"
+                                                    data-cliente-endereco="@cliente.Endereco"
+                                                    data-cliente-cidade="@cliente.Cidade"
+                                                    data-cliente-estado="@cliente.Estado"
+                                                    data-cliente-status="@cliente.Status">
                                                 Ver cadastro
                                             </button>
                                         </li>
@@ -113,6 +132,104 @@
         </table>
     </div>
 </section>
+</div>
+
+<div class="modal fade"
+     id="modalCliente"
+     tabindex="-1"
+     aria-labelledby="tituloModalCliente"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content cliente-details-modal">
+            <div class="modal-header">
+                <div>
+                    <span class="cliente-modal-eyebrow" id="codigoModalCliente"></span>
+                    <h2 class="modal-title fs-5" id="tituloModalCliente">Cadastro do cliente</h2>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <form id="formEdicaoCliente" asp-controller="Clientes" asp-action="Editar" method="post">
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input asp-for="Edicao.Id" type="hidden" />
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label asp-for="Edicao.Nome" class="form-label"></label>
+                            <input asp-for="Edicao.Nome" class="form-control cliente-detail-field" readonly />
+                            <span asp-validation-for="Edicao.Nome" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Edicao.CPF" class="form-label"></label>
+                            <input asp-for="Edicao.CPF" class="form-control cliente-detail-field" maxlength="14" readonly />
+                            <span asp-validation-for="Edicao.CPF" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Edicao.Telefone" class="form-label"></label>
+                            <input asp-for="Edicao.Telefone" class="form-control cliente-detail-field" readonly />
+                            <span asp-validation-for="Edicao.Telefone" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Edicao.Email" class="form-label"></label>
+                            <input asp-for="Edicao.Email" class="form-control cliente-detail-field" readonly />
+                            <span asp-validation-for="Edicao.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Edicao.Endereco" class="form-label"></label>
+                            <input asp-for="Edicao.Endereco" class="form-control cliente-detail-field" readonly />
+                            <span asp-validation-for="Edicao.Endereco" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-7">
+                            <label asp-for="Edicao.Cidade" class="form-label"></label>
+                            <input asp-for="Edicao.Cidade" class="form-control cliente-detail-field" readonly />
+                            <span asp-validation-for="Edicao.Cidade" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label asp-for="Edicao.Estado" class="form-label"></label>
+                            <input asp-for="Edicao.Estado" class="form-control cliente-detail-field text-uppercase" maxlength="2" readonly />
+                            <span asp-validation-for="Edicao.Estado" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="Edicao.Status" class="form-label"></label>
+                            <select asp-for="Edicao.Status" class="form-select cliente-detail-field" disabled>
+                                <option value="Ativo">Ativo</option>
+                                <option value="Inativo">Inativo</option>
+                            </select>
+                            <span asp-validation-for="Edicao.Status" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="modal-footer cliente-modal-footer">
+                <form id="formExcluirCliente"
+                      asp-controller="Clientes"
+                      asp-action="Excluir"
+                      method="post"
+                      class="me-auto">
+                    <input type="hidden" name="id" id="excluirClienteId" />
+                    <button type="submit" class="btn btn-outline-danger" id="botaoExcluirCliente">
+                        Excluir
+                    </button>
+                </form>
+
+                <button type="button" class="btn btn-outline-secondary d-none" id="botaoCancelarEdicao">
+                    Cancelar edição
+                </button>
+                <button type="button" class="btn btn-primary" id="botaoEditarCliente">
+                    Editar
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade"
@@ -209,11 +326,130 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalElement = document.getElementById('modalCliente');
+            const formEdicao = document.getElementById('formEdicaoCliente');
+            const formExclusao = document.getElementById('formExcluirCliente');
+            const botaoEditar = document.getElementById('botaoEditarCliente');
+            const botaoCancelar = document.getElementById('botaoCancelarEdicao');
+            const botaoExcluir = document.getElementById('botaoExcluirCliente');
+            const campos = Array.from(formEdicao.querySelectorAll('.cliente-detail-field'));
+            let valoresOriginais = {};
+            let editando = false;
+
+            function atualizarModoEdicao(ativo) {
+                editando = ativo;
+                campos.forEach(function (campo) {
+                    if (campo.tagName === 'SELECT') {
+                        campo.disabled = !ativo;
+                    } else {
+                        campo.readOnly = !ativo;
+                    }
+                });
+
+                botaoEditar.textContent = ativo ? 'Salvar alterações' : 'Editar';
+                botaoCancelar.classList.toggle('d-none', !ativo);
+                formExclusao.classList.toggle('d-none', ativo);
+
+                if (ativo) {
+                    document.getElementById('Edicao_Nome').focus();
+                }
+            }
+
+            function preencherModal(dados) {
+                document.getElementById('Edicao_Id').value = dados.id || '';
+                document.getElementById('Edicao_Nome').value = dados.nome || '';
+                document.getElementById('Edicao_CPF').value = dados.cpf || '';
+                document.getElementById('Edicao_Telefone').value = dados.telefone || '';
+                document.getElementById('Edicao_Email').value = dados.email || '';
+                document.getElementById('Edicao_Endereco').value = dados.endereco || '';
+                document.getElementById('Edicao_Cidade').value = dados.cidade || '';
+                document.getElementById('Edicao_Estado').value = dados.estado || '';
+                document.getElementById('Edicao_Status').value = dados.status || 'Ativo';
+                document.getElementById('excluirClienteId').value = dados.id || '';
+                document.getElementById('codigoModalCliente').textContent = dados.id
+                    ? 'Cliente #' + String(dados.id).padStart(4, '0')
+                    : '';
+                document.getElementById('tituloModalCliente').textContent = dados.nome || 'Cadastro do cliente';
+
+                valoresOriginais = Object.fromEntries(
+                    campos.map(function (campo) { return [campo.id, campo.value]; })
+                );
+                formEdicao.querySelectorAll('.input-validation-error').forEach(function (campo) {
+                    campo.classList.remove('input-validation-error');
+                });
+                formEdicao.querySelectorAll('.field-validation-error').forEach(function (mensagem) {
+                    mensagem.textContent = '';
+                    mensagem.classList.remove('field-validation-error');
+                    mensagem.classList.add('field-validation-valid');
+                });
+                atualizarModoEdicao(false);
+            }
+
+            modalElement.addEventListener('show.bs.modal', function (event) {
+                const gatilho = event.relatedTarget;
+                if (!gatilho) return;
+
+                preencherModal({
+                    id: gatilho.dataset.clienteId,
+                    nome: gatilho.dataset.clienteNome,
+                    cpf: gatilho.dataset.clienteCpf,
+                    telefone: gatilho.dataset.clienteTelefone,
+                    email: gatilho.dataset.clienteEmail,
+                    endereco: gatilho.dataset.clienteEndereco,
+                    cidade: gatilho.dataset.clienteCidade,
+                    estado: gatilho.dataset.clienteEstado,
+                    status: gatilho.dataset.clienteStatus
+                });
+            });
+
+            botaoEditar.addEventListener('click', function () {
+                if (!editando) {
+                    atualizarModoEdicao(true);
+                    return;
+                }
+
+                formEdicao.requestSubmit();
+            });
+
+            botaoCancelar.addEventListener('click', function () {
+                campos.forEach(function (campo) {
+                    campo.value = valoresOriginais[campo.id] || '';
+                });
+                atualizarModoEdicao(false);
+            });
+
+            formExclusao.addEventListener('submit', function (event) {
+                const nome = document.getElementById('Edicao_Nome').value;
+                if (!window.confirm('Deseja realmente excluir o cadastro de ' + nome + '?')) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+
     @if (Model.AbrirModalCadastro)
     {
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const modalElement = document.getElementById('modalCadastroCliente');
+                bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            });
+        </script>
+    }
+
+    @if (Model.AbrirModalCliente)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modalElement = document.getElementById('modalCliente');
+                document.getElementById('codigoModalCliente').textContent =
+                    'Cliente #' + String(@Model.Edicao.Id).padStart(4, '0');
+                document.getElementById('tituloModalCliente').textContent =
+                    document.getElementById('Edicao_Nome').value || 'Cadastro do cliente';
+                document.getElementById('excluirClienteId').value = '@Model.Edicao.Id';
+                document.getElementById('botaoEditarCliente').click();
                 bootstrap.Modal.getOrCreateInstance(modalElement).show();
             });
         </script>

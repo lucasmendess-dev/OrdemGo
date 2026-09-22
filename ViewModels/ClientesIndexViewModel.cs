@@ -8,5 +8,9 @@ public class ClientesIndexViewModel
 
     public ClienteCadastroViewModel Cadastro { get; set; } = new();
 
+    public ClienteEdicaoViewModel Edicao { get; set; } = new();
+
     public bool AbrirModalCadastro { get; set; }
+
+    public bool AbrirModalCliente { get; set; }
 }

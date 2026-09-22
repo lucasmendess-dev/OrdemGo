@@ -248,6 +248,33 @@ body {
   display: block;
 }
 
+.cliente-details-modal .modal-header {
+  align-items: flex-start;
+}
+
+.cliente-modal-eyebrow {
+  display: block;
+  min-height: 1.1rem;
+  margin-bottom: 0.15rem;
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.cliente-detail-field[readonly],
+.cliente-detail-field:disabled {
+  color: #344054;
+  background-color: #f8fafc;
+  border-color: #e4e7ec;
+  opacity: 1;
+}
+
+.cliente-modal-footer {
+  gap: 0.5rem;
+}
+
 .clientes-empty-state strong {
   color: #344054;
   font-size: 0.92rem;
