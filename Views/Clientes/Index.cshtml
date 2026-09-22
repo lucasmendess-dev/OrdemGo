@@ -1,0 +1,221 @@
+@model OrdemGo.ViewModels.ClientesIndexViewModel
+
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<div class="clientes-page">
+@if (TempData["MensagemSucesso"] is string mensagemSucesso)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @mensagemSucesso
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+}
+
+<div class="clientes-page-header">
+    <div>
+        <h1>Clientes</h1>
+        <p>Consulte e gerencie os clientes cadastrados.</p>
+    </div>
+
+    <button type="button"
+            class="btn btn-primary clientes-add-button"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCadastroCliente">
+        <span aria-hidden="true">+</span>
+        Adicionar novo cliente
+    </button>
+</div>
+
+<section class="clientes-card" aria-labelledby="tituloTabelaClientes">
+    <div class="clientes-card-header">
+        <div>
+            <h2 id="tituloTabelaClientes">Clientes cadastrados</h2>
+            <p>@(Model.Clientes.Count == 1 ? "1 cliente encontrado" : $"{Model.Clientes.Count} clientes encontrados")</p>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table clientes-table align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Telefone</th>
+                    <th scope="col">E-mail</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-end">
+                        <span class="visually-hidden">Ações</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Clientes.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="clientes-empty-state">
+                            <strong>Nenhum cliente cadastrado</strong>
+                            <span>Adicione o primeiro cliente para começar.</span>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var cliente in Model.Clientes)
+                    {
+                        var inicial = string.IsNullOrWhiteSpace(cliente.Nome)
+                            ? "?"
+                            : cliente.Nome[..1].ToUpperInvariant();
+
+                        <tr>
+                            <td><span class="clientes-id">#@cliente.Id.ToString("D4")</span></td>
+                            <td>
+                                <div class="clientes-name-cell">
+                                    <span class="clientes-avatar" aria-hidden="true">@inicial</span>
+                                    <span>@cliente.Nome</span>
+                                </div>
+                            </td>
+                            <td>@(cliente.Telefone ?? "—")</td>
+                            <td>@(cliente.Email ?? "—")</td>
+                            <td>
+                                @if (string.Equals(cliente.Status, "Ativo", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="clientes-status clientes-status-active">@cliente.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="clientes-status clientes-status-inactive">@cliente.Status</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="clientes-actions-button"
+                                            type="button"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                            aria-label="Ações do cliente @cliente.Nome">
+                                        &#8942;
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <button type="button" class="dropdown-item">
+                                                Ver cadastro
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+</div>
+
+<div class="modal fade"
+     id="modalCadastroCliente"
+     tabindex="-1"
+     aria-labelledby="tituloModalCadastroCliente"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form asp-controller="Clientes" asp-action="Cadastrar" method="post">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="tituloModalCadastroCliente">
+                        Cadastrar cliente
+                    </h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label asp-for="Cadastro.Nome" class="form-label"></label>
+                            <input asp-for="Cadastro.Nome" class="form-control" />
+                            <span asp-validation-for="Cadastro.Nome" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Cadastro.CPF" class="form-label"></label>
+                            <input asp-for="Cadastro.CPF"
+                                   class="form-control"
+                                   maxlength="14"
+                                   placeholder="000.000.000-00" />
+                            <span asp-validation-for="Cadastro.CPF" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Cadastro.Telefone" class="form-label"></label>
+                            <input asp-for="Cadastro.Telefone" class="form-control" />
+                            <span asp-validation-for="Cadastro.Telefone" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Cadastro.Email" class="form-label"></label>
+                            <input asp-for="Cadastro.Email" class="form-control" />
+                            <span asp-validation-for="Cadastro.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Cadastro.Endereco" class="form-label"></label>
+                            <input asp-for="Cadastro.Endereco" class="form-control" />
+                            <span asp-validation-for="Cadastro.Endereco" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-7">
+                            <label asp-for="Cadastro.Cidade" class="form-label"></label>
+                            <input asp-for="Cadastro.Cidade" class="form-control" />
+                            <span asp-validation-for="Cadastro.Cidade" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label asp-for="Cadastro.Estado" class="form-label"></label>
+                            <input asp-for="Cadastro.Estado"
+                                   class="form-control text-uppercase"
+                                   maxlength="2"
+                                   placeholder="UF" />
+                            <span asp-validation-for="Cadastro.Estado" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="Cadastro.Status" class="form-label"></label>
+                            <select asp-for="Cadastro.Status" class="form-select">
+                                <option value="Ativo">Ativo</option>
+                                <option value="Inativo">Inativo</option>
+                            </select>
+                            <span asp-validation-for="Cadastro.Status" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Cadastrar cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    @if (Model.AbrirModalCadastro)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modalElement = document.getElementById('modalCadastroCliente');
+                bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            });
+        </script>
+    }
+}
