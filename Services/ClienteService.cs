@@ -17,6 +17,11 @@ public class ClienteService
         return _clienteDAO.ListarAsync();
     }
 
+    public Task<int> ContarAsync()
+    {
+        return _clienteDAO.ContarAsync();
+    }
+
     public Task CadastrarAsync(Cliente cliente)
     {
         Normalizar(cliente);

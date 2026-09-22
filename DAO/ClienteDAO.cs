@@ -21,6 +21,11 @@ public class ClienteDAO
             .ToListAsync();
     }
 
+    public Task<int> ContarAsync()
+    {
+        return _context.Clientes.CountAsync();
+    }
+
     public async Task AdicionarAsync(Cliente cliente)
     {
         await _context.Clientes.AddAsync(cliente);

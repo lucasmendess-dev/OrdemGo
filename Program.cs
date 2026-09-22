@@ -15,6 +15,8 @@ builder.Services.AddDbContext<OrdemGoContext>(options =>
 
 builder.Services.AddScoped<ClienteDAO>();
 builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<OrdemServicoDAO>();
+builder.Services.AddScoped<OrdemServicoService>();
 
 var app = builder.Build();
 

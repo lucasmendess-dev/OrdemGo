@@ -1,8 +1,95 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model OrdemGo.ViewModels.HomeDashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="dashboard-page">
+    <header class="dashboard-page-header">
+        <h1>Dashboard</h1>
+        <p>Acompanhe os principais indicadores do seu negócio.</p>
+    </header>
+
+    <section class="dashboard-indicators" aria-label="Indicadores gerais">
+        <a class="dashboard-indicator-card"
+           asp-controller="Clientes"
+           asp-action="Index"
+           aria-label="Ver clientes cadastrados">
+            <div class="dashboard-indicator-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+            </div>
+
+            <div class="dashboard-indicator-content">
+                <span class="dashboard-indicator-label">Clientes cadastrados</span>
+                <strong class="dashboard-indicator-value">@Model.TotalClientes</strong>
+                <span class="dashboard-indicator-action">
+                    Ver clientes
+                    <span aria-hidden="true">&rarr;</span>
+                </span>
+            </div>
+        </a>
+
+        <article class="dashboard-orders-panel">
+            <header class="dashboard-orders-header">
+                <div class="dashboard-orders-heading">
+                    <div class="dashboard-indicator-icon dashboard-orders-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2>Ordens de serviço</h2>
+                        <p>Visão geral por situação</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-orders-total">
+                    <strong>@Model.TotalOrdensServico</strong>
+                    <span>Total de ordens</span>
+                </div>
+            </header>
+
+            <div class="dashboard-status-list" aria-label="Ordens por status">
+                @foreach (var status in Model.OrdensPorStatus)
+                {
+                    var statusClass = status.Nome.ToLowerInvariant() switch
+                    {
+                        "concluída" => "dashboard-status-success",
+                        "cancelada" => "dashboard-status-neutral",
+                        "aguardando peças" => "dashboard-status-warning",
+                        _ => "dashboard-status-progress"
+                    };
+                    var percentual = Model.TotalOrdensServico == 0
+                        ? 0
+                        : (int)Math.Round(status.Quantidade * 100d / Model.TotalOrdensServico);
+
+                    <div class="dashboard-status-row @statusClass">
+                        <div class="dashboard-status-info">
+                            <span class="dashboard-status-dot" aria-hidden="true"></span>
+                            <span>@status.Nome</span>
+                            <strong>@status.Quantidade</strong>
+                        </div>
+                        <div class="dashboard-status-track"
+                             role="progressbar"
+                             aria-label="@status.Nome"
+                             aria-valuenow="@percentual"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            <span style="width: @percentual%"></span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <footer class="dashboard-orders-footer">
+                <span>Atualizado com os dados atuais do sistema</span>
+                <a asp-controller="OrdensServico" asp-action="Index" class="dashboard-orders-link">
+                    Ver todas as ordens
+                    <span aria-hidden="true">&rarr;</span>
+                </a>
+            </footer>
+        </article>
+    </section>
 </div>

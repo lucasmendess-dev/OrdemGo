@@ -1,0 +1,368 @@
+@model OrdemGo.ViewModels.OrdensServicoIndexViewModel
+@{
+    ViewData["Title"] = "Ordens de serviço";
+}
+
+<div class="ordens-page">
+    @if (TempData["MensagemSucesso"] is string mensagemSucesso)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensagemSucesso
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    }
+
+    <div class="ordens-page-header">
+        <div>
+            <h1>Ordens de serviço</h1>
+            <p>Consulte e gerencie as ordens de serviço cadastradas.</p>
+        </div>
+
+        <button type="button"
+                class="btn btn-primary ordens-add-button"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCadastroOrdem">
+            <span aria-hidden="true">+</span>
+            Nova ordem
+        </button>
+    </div>
+
+    <section class="ordens-card" aria-labelledby="tituloTabelaOrdens">
+        <div class="ordens-card-header">
+            <div>
+                <h2 id="tituloTabelaOrdens">Ordens cadastradas</h2>
+                <p>@(Model.Ordens.Count == 1 ? "1 ordem encontrada" : $"{Model.Ordens.Count} ordens encontradas")</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table ordens-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Número</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Serviço</th>
+                        <th scope="col">Abertura</th>
+                        <th scope="col">Prioridade</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Ações</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Ordens.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="ordens-empty-state">
+                                <strong>Nenhuma ordem de serviço cadastrada</strong>
+                                <span>Crie a primeira ordem para começar.</span>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var ordem in Model.Ordens)
+                        {
+                            var statusClass = ordem.Status.ToLowerInvariant() switch
+                            {
+                                "concluída" or "concluida" => "ordens-status-success",
+                                "cancelada" => "ordens-status-neutral",
+                                _ => "ordens-status-progress"
+                            };
+                            var prioridadeClass = ordem.Prioridade.ToLowerInvariant() switch
+                            {
+                                "alta" or "urgente" => "ordens-priority-high",
+                                "baixa" => "ordens-priority-low",
+                                _ => "ordens-priority-normal"
+                            };
+
+                            <tr>
+                                <td><span class="ordens-number">@ordem.NumeroOS</span></td>
+                                <td>
+                                    <div class="ordens-client-cell">
+                                        <span class="ordens-client-avatar" aria-hidden="true">@ordem.Cliente.Nome[..1].ToUpperInvariant()</span>
+                                        <span>@ordem.Cliente.Nome</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="ordens-service-cell">
+                                        <strong>@ordem.Equipamento</strong>
+                                        <span>@ordem.Modelo</span>
+                                    </div>
+                                </td>
+                                <td>@ordem.DataAbertura.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="ordens-priority @prioridadeClass">@ordem.Prioridade</span></td>
+                                <td><span class="ordens-status @statusClass">@ordem.Status</span></td>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <button class="clientes-actions-button"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                aria-label="Ações da ordem @ordem.NumeroOS">
+                                            &#8942;
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <button type="button"
+                                                        class="dropdown-item js-ver-ordem"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalOrdem"
+                                                        data-ordem-numero="@ordem.NumeroOS"
+                                                        data-ordem-cliente="@ordem.Cliente.Nome"
+                                                        data-ordem-cliente-id="@ordem.ClienteId"
+                                                        data-ordem-responsavel-id="@ordem.ResponsavelId"
+                                                        data-ordem-equipamento="@ordem.Equipamento"
+                                                        data-ordem-modelo="@ordem.Modelo"
+                                                        data-ordem-descricao="@ordem.DescricaoProblema"
+                                                        data-ordem-diagnostico="@ordem.DiagnosticoTecnico"
+                                                        data-ordem-solucao="@ordem.SolucaoAplicada"
+                                                        data-ordem-abertura="@ordem.DataAbertura.ToString("dd/MM/yyyy HH:mm")"
+                                                        data-ordem-previsao="@(ordem.DataPrevisao?.ToString("dd/MM/yyyy HH:mm"))"
+                                                        data-ordem-conclusao="@(ordem.DataConclusao?.ToString("dd/MM/yyyy HH:mm"))"
+                                                        data-ordem-status="@ordem.Status"
+                                                        data-ordem-prioridade="@ordem.Prioridade"
+                                                        data-ordem-observacoes="@ordem.Observacoes"
+                                                        data-ordem-desconto="@ordem.Desconto.ToString("N2")"
+                                                        data-ordem-acrescimo="@ordem.Acrescimo.ToString("N2")">
+                                                    Ver ordem
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="modal fade" id="modalCadastroOrdem" tabindex="-1" aria-labelledby="tituloModalCadastroOrdem" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <form asp-controller="OrdensServico"
+                  asp-action="Cadastrar"
+                  method="post"
+                  class="ordem-modal-form">
+                <div class="modal-header">
+                    <div>
+                        <span class="ordem-modal-eyebrow">Nova ordem de serviço</span>
+                        <h2 class="modal-title fs-5" id="tituloModalCadastroOrdem">Dados da ordem</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="ordem-form-section">
+                        <h3>Identificação</h3>
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label asp-for="Cadastro.ClienteId" class="form-label"></label>
+                                <select asp-for="Cadastro.ClienteId" class="form-select">
+                                    <option value="">Selecione um cliente</option>
+                                    @foreach (var cliente in Model.Clientes)
+                                    {
+                                        <option value="@cliente.Id">@cliente.Nome</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Cadastro.ClienteId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-5">
+                                <label asp-for="Cadastro.ResponsavelId" class="form-label"></label>
+                                <input asp-for="Cadastro.ResponsavelId" class="form-control" min="1" placeholder="Opcional" />
+                                <span asp-validation-for="Cadastro.ResponsavelId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cadastro.Equipamento" class="form-label"></label>
+                                <input asp-for="Cadastro.Equipamento" class="form-control" />
+                                <span asp-validation-for="Cadastro.Equipamento" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cadastro.Modelo" class="form-label"></label>
+                                <input asp-for="Cadastro.Modelo" class="form-control" />
+                                <span asp-validation-for="Cadastro.Modelo" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ordem-form-section">
+                        <h3>Atendimento técnico</h3>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Cadastro.DescricaoProblema" class="form-label"></label>
+                                <textarea asp-for="Cadastro.DescricaoProblema" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Cadastro.DescricaoProblema" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cadastro.DiagnosticoTecnico" class="form-label"></label>
+                                <textarea asp-for="Cadastro.DiagnosticoTecnico" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Cadastro.DiagnosticoTecnico" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cadastro.SolucaoAplicada" class="form-label"></label>
+                                <textarea asp-for="Cadastro.SolucaoAplicada" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Cadastro.SolucaoAplicada" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ordem-form-section">
+                        <h3>Prazo e situação</h3>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="Cadastro.DataAbertura" class="form-label"></label>
+                                <input asp-for="Cadastro.DataAbertura" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="Cadastro.DataAbertura" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Cadastro.DataPrevisao" class="form-label"></label>
+                                <input asp-for="Cadastro.DataPrevisao" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="Cadastro.DataPrevisao" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Cadastro.DataConclusao" class="form-label"></label>
+                                <input asp-for="Cadastro.DataConclusao" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="Cadastro.DataConclusao" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cadastro.Status" class="form-label"></label>
+                                <select asp-for="Cadastro.Status" class="form-select">
+                                    <option value="Aberta">Aberta</option>
+                                    <option value="Em andamento">Em andamento</option>
+                                    <option value="Aguardando peças">Aguardando peças</option>
+                                    <option value="Concluída">Concluída</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
+                                <span asp-validation-for="Cadastro.Status" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cadastro.Prioridade" class="form-label"></label>
+                                <select asp-for="Cadastro.Prioridade" class="form-select">
+                                    <option value="Baixa">Baixa</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Urgente">Urgente</option>
+                                </select>
+                                <span asp-validation-for="Cadastro.Prioridade" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ordem-form-section mb-0">
+                        <h3>Valores e observações</h3>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label asp-for="Cadastro.Desconto" class="form-label"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="Cadastro.Desconto" class="form-control" min="0" step="0.01" />
+                                </div>
+                                <span asp-validation-for="Cadastro.Desconto" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="Cadastro.Acrescimo" class="form-label"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="Cadastro.Acrescimo" class="form-control" min="0" step="0.01" />
+                                </div>
+                                <span asp-validation-for="Cadastro.Acrescimo" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Cadastro.Observacoes" class="form-label"></label>
+                                <textarea asp-for="Cadastro.Observacoes" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Cadastro.Observacoes" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Cadastrar ordem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalOrdem" tabindex="-1" aria-labelledby="tituloModalOrdem" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <span class="ordem-modal-eyebrow" id="numeroModalOrdem"></span>
+                    <h2 class="modal-title fs-5" id="tituloModalOrdem">Detalhes da ordem</h2>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ordem-details-grid">
+                    <div class="ordem-detail"><span>Cliente</span><strong id="detalheCliente"></strong></div>
+                    <div class="ordem-detail"><span>ID do cliente</span><strong id="detalheClienteId"></strong></div>
+                    <div class="ordem-detail"><span>ID do responsável</span><strong id="detalheResponsavelId"></strong></div>
+                    <div class="ordem-detail"><span>Equipamento</span><strong id="detalheEquipamento"></strong></div>
+                    <div class="ordem-detail"><span>Modelo</span><strong id="detalheModelo"></strong></div>
+                    <div class="ordem-detail"><span>Data de abertura</span><strong id="detalheAbertura"></strong></div>
+                    <div class="ordem-detail"><span>Data de previsão</span><strong id="detalhePrevisao"></strong></div>
+                    <div class="ordem-detail"><span>Data de conclusão</span><strong id="detalheConclusao"></strong></div>
+                    <div class="ordem-detail"><span>Status</span><strong id="detalheStatus"></strong></div>
+                    <div class="ordem-detail"><span>Prioridade</span><strong id="detalhePrioridade"></strong></div>
+                    <div class="ordem-detail"><span>Desconto</span><strong id="detalheDesconto"></strong></div>
+                    <div class="ordem-detail"><span>Acréscimo</span><strong id="detalheAcrescimo"></strong></div>
+                    <div class="ordem-detail ordem-detail-wide"><span>Descrição do problema</span><p id="detalheDescricao"></p></div>
+                    <div class="ordem-detail ordem-detail-wide"><span>Diagnóstico técnico</span><p id="detalheDiagnostico"></p></div>
+                    <div class="ordem-detail ordem-detail-wide"><span>Solução aplicada</span><p id="detalheSolucao"></p></div>
+                    <div class="ordem-detail ordem-detail-wide"><span>Observações</span><p id="detalheObservacoes"></p></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('modalOrdem');
+            const valorOuTraco = function (valor) { return valor || '—'; };
+
+            modal.addEventListener('show.bs.modal', function (event) {
+                const dados = event.relatedTarget.dataset;
+                document.getElementById('numeroModalOrdem').textContent = dados.ordemNumero;
+                document.getElementById('tituloModalOrdem').textContent = dados.ordemEquipamento;
+                document.getElementById('detalheCliente').textContent = dados.ordemCliente;
+                document.getElementById('detalheClienteId').textContent = dados.ordemClienteId;
+                document.getElementById('detalheResponsavelId').textContent = valorOuTraco(dados.ordemResponsavelId);
+                document.getElementById('detalheEquipamento').textContent = dados.ordemEquipamento;
+                document.getElementById('detalheModelo').textContent = dados.ordemModelo;
+                document.getElementById('detalheAbertura').textContent = dados.ordemAbertura;
+                document.getElementById('detalhePrevisao').textContent = valorOuTraco(dados.ordemPrevisao);
+                document.getElementById('detalheConclusao').textContent = valorOuTraco(dados.ordemConclusao);
+                document.getElementById('detalheStatus').textContent = dados.ordemStatus;
+                document.getElementById('detalhePrioridade').textContent = dados.ordemPrioridade;
+                document.getElementById('detalheDesconto').textContent = 'R$ ' + dados.ordemDesconto;
+                document.getElementById('detalheAcrescimo').textContent = 'R$ ' + dados.ordemAcrescimo;
+                document.getElementById('detalheDescricao').textContent = dados.ordemDescricao;
+                document.getElementById('detalheDiagnostico').textContent = valorOuTraco(dados.ordemDiagnostico);
+                document.getElementById('detalheSolucao').textContent = valorOuTraco(dados.ordemSolucao);
+                document.getElementById('detalheObservacoes').textContent = valorOuTraco(dados.ordemObservacoes);
+            });
+        });
+    </script>
+
+    @if (Model.AbrirModalCadastro)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCadastroOrdem')).show();
+            });
+        </script>
+    }
+}
