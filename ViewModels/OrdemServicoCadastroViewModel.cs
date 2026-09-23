@@ -55,10 +55,11 @@ public class OrdemServicoCadastroViewModel
     [Display(Name = "Observações")]
     public string? Observacoes { get; set; }
 
-    [Range(typeof(decimal), "0", "9999999999999999", ErrorMessage = "O desconto não pode ser negativo.")]
-    public decimal Desconto { get; set; }
+    [Range(typeof(decimal), "0", "9999999999999999", ErrorMessage = "O valor do serviço não pode ser negativo.")]
+    [Display(Name = "Valor do serviço")]
+    public decimal ValorServico { get; set; } = 0m;
 
-    [Range(typeof(decimal), "0", "9999999999999999", ErrorMessage = "O acréscimo não pode ser negativo.")]
-    [Display(Name = "Acréscimo")]
-    public decimal Acrescimo { get; set; }
+    [Range(typeof(decimal), "0", "9999999999999999", ErrorMessage = "O valor de peças não pode ser negativo.")]
+    [Display(Name = "Valor de peças")]
+    public decimal ValorPecas { get; set; } = 0m;
 }

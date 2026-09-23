@@ -51,10 +51,10 @@ public class OrdemServico
     public string? Observacoes { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal Desconto { get; set; }
+    public decimal ValorServico { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
-    public decimal Acrescimo { get; set; }
+    public decimal ValorPecas { get; set; }
 
     [ForeignKey(nameof(ClienteId))]
     public Cliente Cliente { get; set; } = null!;

@@ -60,8 +60,8 @@ public class OrdensServicoController : Controller
                 Status = cadastro.Status,
                 Prioridade = cadastro.Prioridade,
                 Observacoes = cadastro.Observacoes,
-                Desconto = cadastro.Desconto,
-                Acrescimo = cadastro.Acrescimo
+                ValorServico = cadastro.ValorServico,
+                ValorPecas = cadastro.ValorPecas
             };
 
             try

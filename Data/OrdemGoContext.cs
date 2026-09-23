@@ -27,6 +27,14 @@ public class OrdemGoContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<OrdemServico>()
+            .Property(ordem => ordem.ValorServico)
+            .HasDefaultValue(0m);
+
+        modelBuilder.Entity<OrdemServico>()
+            .Property(ordem => ordem.ValorPecas)
+            .HasDefaultValue(0m);
+
+        modelBuilder.Entity<OrdemServico>()
             .HasOne(ordem => ordem.Cliente)
             .WithMany()
             .HasForeignKey(ordem => ordem.ClienteId)

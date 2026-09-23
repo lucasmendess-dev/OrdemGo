@@ -122,8 +122,8 @@
                                                         data-ordem-status="@ordem.Status"
                                                         data-ordem-prioridade="@ordem.Prioridade"
                                                         data-ordem-observacoes="@ordem.Observacoes"
-                                                        data-ordem-desconto="@ordem.Desconto.ToString("N2")"
-                                                        data-ordem-acrescimo="@ordem.Acrescimo.ToString("N2")">
+                                                        data-ordem-valor-servico="@ordem.ValorServico.ToString("N2")"
+                                                        data-ordem-valor-pecas="@ordem.ValorPecas.ToString("N2")">
                                                     Ver ordem
                                                 </button>
                                             </li>
@@ -256,20 +256,30 @@
                         <h3>Valores e observações</h3>
                         <div class="row g-3">
                             <div class="col-md-3">
-                                <label asp-for="Cadastro.Desconto" class="form-label"></label>
+                                <label asp-for="Cadastro.ValorServico" class="form-label"></label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
-                                    <input asp-for="Cadastro.Desconto" class="form-control" min="0" step="0.01" />
+                                    <input asp-for="Cadastro.ValorServico"
+                                           asp-format="{0:N2}"
+                                           type="text"
+                                           inputmode="decimal"
+                                           class="form-control ordem-currency-input"
+                                           autocomplete="off" />
                                 </div>
-                                <span asp-validation-for="Cadastro.Desconto" class="text-danger"></span>
+                                <span asp-validation-for="Cadastro.ValorServico" class="text-danger"></span>
                             </div>
                             <div class="col-md-3">
-                                <label asp-for="Cadastro.Acrescimo" class="form-label"></label>
+                                <label asp-for="Cadastro.ValorPecas" class="form-label"></label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
-                                    <input asp-for="Cadastro.Acrescimo" class="form-control" min="0" step="0.01" />
+                                    <input asp-for="Cadastro.ValorPecas"
+                                           asp-format="{0:N2}"
+                                           type="text"
+                                           inputmode="decimal"
+                                           class="form-control ordem-currency-input"
+                                           autocomplete="off" />
                                 </div>
-                                <span asp-validation-for="Cadastro.Acrescimo" class="text-danger"></span>
+                                <span asp-validation-for="Cadastro.ValorPecas" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="Cadastro.Observacoes" class="form-label"></label>
@@ -311,8 +321,8 @@
                     <div class="ordem-detail"><span>Data de conclusão</span><strong id="detalheConclusao"></strong></div>
                     <div class="ordem-detail"><span>Status</span><strong id="detalheStatus"></strong></div>
                     <div class="ordem-detail"><span>Prioridade</span><strong id="detalhePrioridade"></strong></div>
-                    <div class="ordem-detail"><span>Desconto</span><strong id="detalheDesconto"></strong></div>
-                    <div class="ordem-detail"><span>Acréscimo</span><strong id="detalheAcrescimo"></strong></div>
+                    <div class="ordem-detail"><span>Valor do serviço</span><strong id="detalheValorServico"></strong></div>
+                    <div class="ordem-detail"><span>Valor de peças</span><strong id="detalheValorPecas"></strong></div>
                     <div class="ordem-detail ordem-detail-wide"><span>Descrição do problema</span><p id="detalheDescricao"></p></div>
                     <div class="ordem-detail ordem-detail-wide"><span>Diagnóstico técnico</span><p id="detalheDiagnostico"></p></div>
                     <div class="ordem-detail ordem-detail-wide"><span>Solução aplicada</span><p id="detalheSolucao"></p></div>
@@ -330,6 +340,44 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            function converterDecimalBrasileiro(valor) {
+                const texto = String(valor ?? '').trim().replace(/\s/g, '');
+                if (!texto) return Number.NaN;
+
+                const normalizado = texto.includes(',')
+                    ? texto.replace(/\./g, '').replace(',', '.')
+                    : texto;
+
+                return Number(normalizado);
+            }
+
+            if (window.jQuery && window.jQuery.validator) {
+                window.jQuery.validator.methods.number = function (value, element) {
+                    return this.optional(element) || Number.isFinite(converterDecimalBrasileiro(value));
+                };
+
+                window.jQuery.validator.methods.range = function (value, element, params) {
+                    if (this.optional(element)) return true;
+
+                    const numero = converterDecimalBrasileiro(value);
+                    const minimo = converterDecimalBrasileiro(params[0]);
+                    const maximo = converterDecimalBrasileiro(params[1]);
+                    return Number.isFinite(numero) && numero >= minimo && numero <= maximo;
+                };
+            }
+
+            document.querySelectorAll('.ordem-currency-input').forEach(function (campo) {
+                campo.addEventListener('blur', function () {
+                    const numero = converterDecimalBrasileiro(campo.value);
+                    if (Number.isFinite(numero)) {
+                        campo.value = numero.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                });
+            });
+
             const modal = document.getElementById('modalOrdem');
             const valorOuTraco = function (valor) { return valor || '—'; };
 
@@ -347,8 +395,8 @@
                 document.getElementById('detalheConclusao').textContent = valorOuTraco(dados.ordemConclusao);
                 document.getElementById('detalheStatus').textContent = dados.ordemStatus;
                 document.getElementById('detalhePrioridade').textContent = dados.ordemPrioridade;
-                document.getElementById('detalheDesconto').textContent = 'R$ ' + dados.ordemDesconto;
-                document.getElementById('detalheAcrescimo').textContent = 'R$ ' + dados.ordemAcrescimo;
+                document.getElementById('detalheValorServico').textContent = 'R$ ' + dados.ordemValorServico;
+                document.getElementById('detalheValorPecas').textContent = 'R$ ' + dados.ordemValorPecas;
                 document.getElementById('detalheDescricao').textContent = dados.ordemDescricao;
                 document.getElementById('detalheDiagnostico').textContent = valorOuTraco(dados.ordemDiagnostico);
                 document.getElementById('detalheSolucao').textContent = valorOuTraco(dados.ordemSolucao);

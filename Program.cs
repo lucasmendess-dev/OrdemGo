@@ -1,12 +1,22 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Localization;
 using OrdemGo.DAO;
 using OrdemGo.Data;
 using OrdemGo.Services;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var culturaBrasileira = new CultureInfo("pt-BR");
+    options.DefaultRequestCulture = new RequestCulture(culturaBrasileira);
+    options.SupportedCultures = [culturaBrasileira];
+    options.SupportedUICultures = [culturaBrasileira];
+});
 
 builder.Services.AddDbContext<OrdemGoContext>(options =>
     options.UseSqlServer(
@@ -29,6 +39,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRequestLocalization();
 app.UseRouting();
 
 app.UseAuthorization();
