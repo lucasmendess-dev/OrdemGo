@@ -10,5 +10,9 @@ public class OrdensServicoIndexViewModel
 
     public OrdemServicoCadastroViewModel Cadastro { get; set; } = new();
 
+    public OrdemServicoEdicaoViewModel Edicao { get; set; } = new();
+
     public bool AbrirModalCadastro { get; set; }
+
+    public bool AbrirModalEdicao { get; set; }
 }

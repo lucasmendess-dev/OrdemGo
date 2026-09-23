@@ -46,4 +46,22 @@ public class OrdemServicoDAO
         await _context.OrdensServico.AddAsync(ordem);
         await _context.SaveChangesAsync();
     }
+
+    public Task<OrdemServico?> ObterPorIdAsync(int id)
+    {
+        return _context.OrdensServico.FirstOrDefaultAsync(ordem => ordem.Id == id);
+    }
+
+    public Task<OrdemServico?> ObterDetalhesAsync(int id)
+    {
+        return _context.OrdensServico
+            .AsNoTracking()
+            .Include(ordem => ordem.Cliente)
+            .FirstOrDefaultAsync(ordem => ordem.Id == id);
+    }
+
+    public Task SalvarAlteracoesAsync()
+    {
+        return _context.SaveChangesAsync();
+    }
 }

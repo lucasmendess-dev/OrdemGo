@@ -24,6 +24,67 @@ public class OrdemServicoService
 
     public Task CadastrarAsync(OrdemServico ordem)
     {
+        Normalizar(ordem);
+
+        return _ordemServicoDAO.AdicionarAsync(ordem);
+    }
+
+    public Task<OrdemServico?> ObterDetalhesAsync(int id)
+    {
+        return _ordemServicoDAO.ObterDetalhesAsync(id);
+    }
+
+    public async Task<bool> EditarAsync(OrdemServico ordemAtualizada)
+    {
+        var ordem = await _ordemServicoDAO.ObterPorIdAsync(ordemAtualizada.Id);
+        if (ordem is null)
+        {
+            return false;
+        }
+
+        ordem.ClienteId = ordemAtualizada.ClienteId;
+        ordem.ResponsavelId = ordemAtualizada.ResponsavelId;
+        ordem.Equipamento = ordemAtualizada.Equipamento;
+        ordem.Modelo = ordemAtualizada.Modelo;
+        ordem.DescricaoProblema = ordemAtualizada.DescricaoProblema;
+        ordem.DiagnosticoTecnico = ordemAtualizada.DiagnosticoTecnico;
+        ordem.SolucaoAplicada = ordemAtualizada.SolucaoAplicada;
+        ordem.DataAbertura = ordemAtualizada.DataAbertura;
+        ordem.DataPrevisao = ordemAtualizada.DataPrevisao;
+        ordem.DataConclusao = ordemAtualizada.DataConclusao;
+        ordem.Status = ordemAtualizada.Status;
+        ordem.Prioridade = ordemAtualizada.Prioridade;
+        ordem.Observacoes = ordemAtualizada.Observacoes;
+        ordem.ValorServico = ordemAtualizada.ValorServico;
+        ordem.ValorPecas = ordemAtualizada.ValorPecas;
+        Normalizar(ordem);
+
+        await _ordemServicoDAO.SalvarAlteracoesAsync();
+        return true;
+    }
+
+    public async Task<FinalizacaoOrdemResultado> FinalizarAsync(int id)
+    {
+        var ordem = await _ordemServicoDAO.ObterPorIdAsync(id);
+        if (ordem is null)
+        {
+            return FinalizacaoOrdemResultado.NaoEncontrada;
+        }
+
+        if (string.Equals(ordem.Status, "Concluída", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(ordem.Status, "Cancelada", StringComparison.OrdinalIgnoreCase))
+        {
+            return FinalizacaoOrdemResultado.Indisponivel;
+        }
+
+        ordem.Status = "Concluída";
+        ordem.DataConclusao = DateTime.Now;
+        await _ordemServicoDAO.SalvarAlteracoesAsync();
+        return FinalizacaoOrdemResultado.Concluida;
+    }
+
+    private static void Normalizar(OrdemServico ordem)
+    {
         ordem.Equipamento = ordem.Equipamento.Trim();
         ordem.Modelo = ordem.Modelo.Trim();
         ordem.DescricaoProblema = ordem.DescricaoProblema.Trim();
@@ -32,8 +93,6 @@ public class OrdemServicoService
         ordem.Status = ordem.Status.Trim();
         ordem.Prioridade = ordem.Prioridade.Trim();
         ordem.Observacoes = LimparCampoOpcional(ordem.Observacoes);
-
-        return _ordemServicoDAO.AdicionarAsync(ordem);
     }
 
     private static string? LimparCampoOpcional(string? valor)

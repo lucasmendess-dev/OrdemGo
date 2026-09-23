@@ -29,44 +29,13 @@ public class OrdensServicoController : Controller
     public async Task<IActionResult> Cadastrar(
         [Bind(Prefix = "Cadastro")] OrdemServicoCadastroViewModel cadastro)
     {
-        if (cadastro.DataPrevisao.HasValue && cadastro.DataPrevisao < cadastro.DataAbertura)
-        {
-            ModelState.AddModelError(
-                "Cadastro.DataPrevisao",
-                "A previsão não pode ser anterior à abertura.");
-        }
-
-        if (cadastro.DataConclusao.HasValue && cadastro.DataConclusao < cadastro.DataAbertura)
-        {
-            ModelState.AddModelError(
-                "Cadastro.DataConclusao",
-                "A conclusão não pode ser anterior à abertura.");
-        }
+        ValidarDatas(cadastro, "Cadastro");
 
         if (ModelState.IsValid)
         {
-            var ordem = new OrdemServico
-            {
-                ClienteId = cadastro.ClienteId,
-                ResponsavelId = cadastro.ResponsavelId,
-                Equipamento = cadastro.Equipamento,
-                Modelo = cadastro.Modelo,
-                DescricaoProblema = cadastro.DescricaoProblema,
-                DiagnosticoTecnico = cadastro.DiagnosticoTecnico,
-                SolucaoAplicada = cadastro.SolucaoAplicada,
-                DataAbertura = cadastro.DataAbertura,
-                DataPrevisao = cadastro.DataPrevisao,
-                DataConclusao = cadastro.DataConclusao,
-                Status = cadastro.Status,
-                Prioridade = cadastro.Prioridade,
-                Observacoes = cadastro.Observacoes,
-                ValorServico = cadastro.ValorServico,
-                ValorPecas = cadastro.ValorPecas
-            };
-
             try
             {
-                await _ordemServicoService.CadastrarAsync(ordem);
+                await _ordemServicoService.CadastrarAsync(CriarOrdem(cadastro));
                 TempData["MensagemSucesso"] = "Ordem de serviço cadastrada com sucesso.";
                 return RedirectToAction(nameof(Index));
             }
@@ -84,12 +53,114 @@ public class OrdensServicoController : Controller
         return View("Index", viewModel);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Editar(
+        [Bind(Prefix = "Edicao")] OrdemServicoEdicaoViewModel edicao)
+    {
+        ValidarDatas(edicao, "Edicao");
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                if (!await _ordemServicoService.EditarAsync(CriarOrdem(edicao, edicao.Id)))
+                {
+                    return NotFound();
+                }
+
+                TempData["MensagemSucesso"] = "Ordem de serviço atualizada com sucesso.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Não foi possível atualizar a ordem. Verifique os dados e tente novamente.");
+            }
+        }
+
+        var viewModel = await MontarViewModelAsync();
+        viewModel.Edicao = edicao;
+        viewModel.AbrirModalEdicao = true;
+        return View("Index", viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Finalizar(int id)
+    {
+        var resultado = await _ordemServicoService.FinalizarAsync(id);
+        switch (resultado)
+        {
+            case FinalizacaoOrdemResultado.NaoEncontrada:
+                return NotFound();
+            case FinalizacaoOrdemResultado.Indisponivel:
+                TempData["MensagemErro"] = "Esta ordem já está concluída ou cancelada.";
+                break;
+            default:
+                TempData["MensagemSucesso"] = "Ordem de serviço finalizada com sucesso.";
+                break;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Imprimir(int id)
+    {
+        var ordem = await _ordemServicoService.ObterDetalhesAsync(id);
+        return ordem is null ? NotFound() : View(ordem);
+    }
+
     private async Task<OrdensServicoIndexViewModel> MontarViewModelAsync()
     {
         return new OrdensServicoIndexViewModel
         {
             Ordens = await _ordemServicoService.ListarAsync(),
             Clientes = await _clienteService.ListarAsync()
+        };
+    }
+
+    private void ValidarDatas(OrdemServicoCadastroViewModel dados, string prefixo)
+    {
+        if (dados.DataPrevisao.HasValue && dados.DataPrevisao < dados.DataAbertura)
+        {
+            ModelState.AddModelError(
+                $"{prefixo}.DataPrevisao",
+                "A previsão não pode ser anterior à abertura.");
+        }
+
+        if (dados.DataConclusao.HasValue && dados.DataConclusao < dados.DataAbertura)
+        {
+            ModelState.AddModelError(
+                $"{prefixo}.DataConclusao",
+                "A conclusão não pode ser anterior à abertura.");
+        }
+    }
+
+    private static OrdemServico CriarOrdem(
+        OrdemServicoCadastroViewModel dados,
+        int id = 0)
+    {
+        return new OrdemServico
+        {
+            Id = id,
+            ClienteId = dados.ClienteId,
+            ResponsavelId = dados.ResponsavelId,
+            Equipamento = dados.Equipamento,
+            Modelo = dados.Modelo,
+            DescricaoProblema = dados.DescricaoProblema,
+            DiagnosticoTecnico = dados.DiagnosticoTecnico,
+            SolucaoAplicada = dados.SolucaoAplicada,
+            DataAbertura = dados.DataAbertura,
+            DataPrevisao = dados.DataPrevisao,
+            DataConclusao = dados.DataConclusao,
+            Status = dados.Status,
+            Prioridade = dados.Prioridade,
+            Observacoes = dados.Observacoes,
+            ValorServico = dados.ValorServico,
+            ValorPecas = dados.ValorPecas
         };
     }
 }

@@ -314,6 +314,30 @@ html {
   }
 }
 
+.ordem-modal-actions {
+  gap: 0.5rem;
+}
+
+.ordem-modal-actions form {
+  margin-bottom: 0;
+}
+
+@media (max-width: 767.98px) {
+  .ordem-modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ordem-modal-actions form,
+  .ordem-modal-actions .btn {
+    width: 100%;
+  }
+
+  .ordem-modal-actions form.me-auto {
+    margin-right: 0 !important;
+  }
+}
+
 /* Dashboard */
 .dashboard-page {
   width: 100%;

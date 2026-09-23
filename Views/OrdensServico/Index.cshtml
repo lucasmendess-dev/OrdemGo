@@ -11,6 +11,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
     }
+    @if (TempData["MensagemErro"] is string mensagemErro)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensagemErro
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    }
 
     <div class="ordens-page-header">
         <div>
@@ -107,6 +114,7 @@
                                                         class="dropdown-item js-ver-ordem"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modalOrdem"
+                                                        data-ordem-id="@ordem.Id"
                                                         data-ordem-numero="@ordem.NumeroOS"
                                                         data-ordem-cliente="@ordem.Cliente.Nome"
                                                         data-ordem-cliente-id="@ordem.ClienteId"
@@ -117,13 +125,18 @@
                                                         data-ordem-diagnostico="@ordem.DiagnosticoTecnico"
                                                         data-ordem-solucao="@ordem.SolucaoAplicada"
                                                         data-ordem-abertura="@ordem.DataAbertura.ToString("dd/MM/yyyy HH:mm")"
+                                                        data-ordem-abertura-input="@ordem.DataAbertura.ToString("yyyy-MM-ddTHH:mm")"
                                                         data-ordem-previsao="@(ordem.DataPrevisao?.ToString("dd/MM/yyyy HH:mm"))"
+                                                        data-ordem-previsao-input="@(ordem.DataPrevisao?.ToString("yyyy-MM-ddTHH:mm"))"
                                                         data-ordem-conclusao="@(ordem.DataConclusao?.ToString("dd/MM/yyyy HH:mm"))"
+                                                        data-ordem-conclusao-input="@(ordem.DataConclusao?.ToString("yyyy-MM-ddTHH:mm"))"
                                                         data-ordem-status="@ordem.Status"
                                                         data-ordem-prioridade="@ordem.Prioridade"
                                                         data-ordem-observacoes="@ordem.Observacoes"
                                                         data-ordem-valor-servico="@ordem.ValorServico.ToString("N2")"
-                                                        data-ordem-valor-pecas="@ordem.ValorPecas.ToString("N2")">
+                                                        data-ordem-valor-servico-input="@ordem.ValorServico.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                                        data-ordem-valor-pecas="@ordem.ValorPecas.ToString("N2")"
+                                                        data-ordem-valor-pecas-input="@ordem.ValorPecas.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)">
                                                     Ver ordem
                                                 </button>
                                             </li>
@@ -310,7 +323,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
-                <div class="ordem-details-grid">
+                <div class="ordem-details-grid" id="modoVisualizacaoOrdem">
                     <div class="ordem-detail"><span>Cliente</span><strong id="detalheCliente"></strong></div>
                     <div class="ordem-detail"><span>ID do cliente</span><strong id="detalheClienteId"></strong></div>
                     <div class="ordem-detail"><span>ID do responsável</span><strong id="detalheResponsavelId"></strong></div>
@@ -328,9 +341,144 @@
                     <div class="ordem-detail ordem-detail-wide"><span>Solução aplicada</span><p id="detalheSolucao"></p></div>
                     <div class="ordem-detail ordem-detail-wide"><span>Observações</span><p id="detalheObservacoes"></p></div>
                 </div>
+
+                <form asp-controller="OrdensServico" asp-action="Editar" method="post" id="formEdicaoOrdem" class="ordem-modal-form d-none">
+                    <input asp-for="Edicao.Id" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="ordem-form-section">
+                        <h3>Identificação</h3>
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label asp-for="Edicao.ClienteId" class="form-label"></label>
+                                <select asp-for="Edicao.ClienteId" class="form-select">
+                                    <option value="">Selecione um cliente</option>
+                                    @foreach (var cliente in Model.Clientes)
+                                    {
+                                        <option value="@cliente.Id">@cliente.Nome</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Edicao.ClienteId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-5">
+                                <label asp-for="Edicao.ResponsavelId" class="form-label"></label>
+                                <input asp-for="Edicao.ResponsavelId" class="form-control" min="1" placeholder="Opcional" />
+                                <span asp-validation-for="Edicao.ResponsavelId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Edicao.Equipamento" class="form-label"></label>
+                                <input asp-for="Edicao.Equipamento" class="form-control" />
+                                <span asp-validation-for="Edicao.Equipamento" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Edicao.Modelo" class="form-label"></label>
+                                <input asp-for="Edicao.Modelo" class="form-control" />
+                                <span asp-validation-for="Edicao.Modelo" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ordem-form-section">
+                        <h3>Atendimento técnico</h3>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Edicao.DescricaoProblema" class="form-label"></label>
+                                <textarea asp-for="Edicao.DescricaoProblema" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Edicao.DescricaoProblema" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Edicao.DiagnosticoTecnico" class="form-label"></label>
+                                <textarea asp-for="Edicao.DiagnosticoTecnico" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Edicao.DiagnosticoTecnico" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Edicao.SolucaoAplicada" class="form-label"></label>
+                                <textarea asp-for="Edicao.SolucaoAplicada" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Edicao.SolucaoAplicada" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ordem-form-section">
+                        <h3>Prazo e situação</h3>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="Edicao.DataAbertura" class="form-label"></label>
+                                <input asp-for="Edicao.DataAbertura" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="Edicao.DataAbertura" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Edicao.DataPrevisao" class="form-label"></label>
+                                <input asp-for="Edicao.DataPrevisao" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="Edicao.DataPrevisao" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Edicao.DataConclusao" class="form-label"></label>
+                                <input asp-for="Edicao.DataConclusao" asp-format="{0:yyyy-MM-ddTHH:mm}" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="Edicao.DataConclusao" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Edicao.Status" class="form-label"></label>
+                                <select asp-for="Edicao.Status" class="form-select">
+                                    <option value="Aberta">Aberta</option>
+                                    <option value="Em andamento">Em andamento</option>
+                                    <option value="Aguardando peças">Aguardando peças</option>
+                                    <option value="Concluída">Concluída</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
+                                <span asp-validation-for="Edicao.Status" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Edicao.Prioridade" class="form-label"></label>
+                                <select asp-for="Edicao.Prioridade" class="form-select">
+                                    <option value="Baixa">Baixa</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Urgente">Urgente</option>
+                                </select>
+                                <span asp-validation-for="Edicao.Prioridade" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ordem-form-section mb-0">
+                        <h3>Valores e observações</h3>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label asp-for="Edicao.ValorServico" class="form-label"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="Edicao.ValorServico" asp-format="{0:N2}" type="text" inputmode="decimal" class="form-control ordem-currency-input" autocomplete="off" />
+                                </div>
+                                <span asp-validation-for="Edicao.ValorServico" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="Edicao.ValorPecas" class="form-label"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="Edicao.ValorPecas" asp-format="{0:N2}" type="text" inputmode="decimal" class="form-control ordem-currency-input" autocomplete="off" />
+                                </div>
+                                <span asp-validation-for="Edicao.ValorPecas" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Edicao.Observacoes" class="form-label"></label>
+                                <textarea asp-for="Edicao.Observacoes" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Edicao.Observacoes" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+            <div class="modal-footer ordem-modal-actions">
+                <form asp-controller="OrdensServico" asp-action="Finalizar" method="post" id="formFinalizarOrdem" class="me-auto">
+                    <input type="hidden" name="id" id="finalizarOrdemId" />
+                    <button type="submit" class="btn btn-success" id="botaoFinalizarOrdem">Finalizar</button>
+                </form>
+                <a class="btn btn-outline-secondary" id="botaoImprimirOrdem" target="_blank" rel="noopener">Imprimir</a>
+                <button type="button" class="btn btn-primary" id="botaoEditarOrdem">Editar</button>
+                <button type="button" class="btn btn-outline-secondary d-none" id="botaoCancelarEdicao">Cancelar edição</button>
+                <button type="submit" class="btn btn-primary d-none" id="botaoSalvarEdicao" form="formEdicaoOrdem">Salvar alterações</button>
+                <button type="button" class="btn btn-outline-secondary" id="botaoFecharOrdem" data-bs-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>
@@ -382,6 +530,7 @@
             const valorOuTraco = function (valor) { return valor || '—'; };
 
             modal.addEventListener('show.bs.modal', function (event) {
+                if (!event.relatedTarget) return;
                 const dados = event.relatedTarget.dataset;
                 document.getElementById('numeroModalOrdem').textContent = dados.ordemNumero;
                 document.getElementById('tituloModalOrdem').textContent = dados.ordemEquipamento;
@@ -402,6 +551,127 @@
                 document.getElementById('detalheSolucao').textContent = valorOuTraco(dados.ordemSolucao);
                 document.getElementById('detalheObservacoes').textContent = valorOuTraco(dados.ordemObservacoes);
             });
+
+            const modoVisualizacao = document.getElementById('modoVisualizacaoOrdem');
+            const formEdicao = document.getElementById('formEdicaoOrdem');
+            const botaoEditar = document.getElementById('botaoEditarOrdem');
+            const botaoCancelar = document.getElementById('botaoCancelarEdicao');
+            const botaoSalvar = document.getElementById('botaoSalvarEdicao');
+            const botaoFechar = document.getElementById('botaoFecharOrdem');
+            const formFinalizar = document.getElementById('formFinalizarOrdem');
+            const botaoFinalizar = document.getElementById('botaoFinalizarOrdem');
+            const botaoImprimir = document.getElementById('botaoImprimirOrdem');
+
+            function definirValor(id, valor) {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = valor || '';
+            }
+
+            function exibirVisualizacao() {
+                modoVisualizacao.classList.remove('d-none');
+                formEdicao.classList.add('d-none');
+                botaoEditar.classList.remove('d-none');
+                botaoCancelar.classList.add('d-none');
+                botaoSalvar.classList.add('d-none');
+                botaoFechar.classList.remove('d-none');
+                formFinalizar.classList.remove('d-none');
+                botaoImprimir.classList.remove('d-none');
+            }
+
+            function exibirEdicao() {
+                modoVisualizacao.classList.add('d-none');
+                formEdicao.classList.remove('d-none');
+                botaoEditar.classList.add('d-none');
+                botaoCancelar.classList.remove('d-none');
+                botaoSalvar.classList.remove('d-none');
+                botaoFechar.classList.add('d-none');
+                formFinalizar.classList.add('d-none');
+                botaoImprimir.classList.add('d-none');
+            }
+
+            function preencherEdicao(dados) {
+                definirValor('Edicao_Id', dados.ordemId);
+                definirValor('Edicao_ClienteId', dados.ordemClienteId);
+                definirValor('Edicao_ResponsavelId', dados.ordemResponsavelId);
+                definirValor('Edicao_Equipamento', dados.ordemEquipamento);
+                definirValor('Edicao_Modelo', dados.ordemModelo);
+                definirValor('Edicao_DescricaoProblema', dados.ordemDescricao);
+                definirValor('Edicao_DiagnosticoTecnico', dados.ordemDiagnostico);
+                definirValor('Edicao_SolucaoAplicada', dados.ordemSolucao);
+                definirValor('Edicao_DataAbertura', dados.ordemAberturaInput);
+                definirValor('Edicao_DataPrevisao', dados.ordemPrevisaoInput);
+                definirValor('Edicao_DataConclusao', dados.ordemConclusaoInput);
+                definirValor('Edicao_Status', dados.ordemStatus);
+                definirValor('Edicao_Prioridade', dados.ordemPrioridade);
+                definirValor('Edicao_Observacoes', dados.ordemObservacoes);
+                definirValor('Edicao_ValorServico', dados.ordemValorServicoInput.replace('.', ','));
+                definirValor('Edicao_ValorPecas', dados.ordemValorPecasInput.replace('.', ','));
+            }
+
+            function preencherVisualizacao(dados) {
+                document.getElementById('numeroModalOrdem').textContent = dados.ordemNumero;
+                document.getElementById('tituloModalOrdem').textContent = dados.ordemEquipamento;
+                document.getElementById('detalheCliente').textContent = dados.ordemCliente;
+                document.getElementById('detalheClienteId').textContent = dados.ordemClienteId;
+                document.getElementById('detalheResponsavelId').textContent = valorOuTraco(dados.ordemResponsavelId);
+                document.getElementById('detalheEquipamento').textContent = dados.ordemEquipamento;
+                document.getElementById('detalheModelo').textContent = dados.ordemModelo;
+                document.getElementById('detalheAbertura').textContent = dados.ordemAbertura;
+                document.getElementById('detalhePrevisao').textContent = valorOuTraco(dados.ordemPrevisao);
+                document.getElementById('detalheConclusao').textContent = valorOuTraco(dados.ordemConclusao);
+                document.getElementById('detalheStatus').textContent = dados.ordemStatus;
+                document.getElementById('detalhePrioridade').textContent = dados.ordemPrioridade;
+                document.getElementById('detalheValorServico').textContent = 'R$ ' + dados.ordemValorServico;
+                document.getElementById('detalheValorPecas').textContent = 'R$ ' + dados.ordemValorPecas;
+                document.getElementById('detalheDescricao').textContent = dados.ordemDescricao;
+                document.getElementById('detalheDiagnostico').textContent = valorOuTraco(dados.ordemDiagnostico);
+                document.getElementById('detalheSolucao').textContent = valorOuTraco(dados.ordemSolucao);
+                document.getElementById('detalheObservacoes').textContent = valorOuTraco(dados.ordemObservacoes);
+            }
+
+            function configurarAcoes(dados) {
+                document.getElementById('finalizarOrdemId').value = dados.ordemId;
+                botaoImprimir.href = '@Url.Action("Imprimir", "OrdensServico")?id=' + encodeURIComponent(dados.ordemId);
+
+                const status = (dados.ordemStatus || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase();
+                const finalizacaoIndisponivel = status === 'concluida' || status === 'cancelada';
+                botaoFinalizar.disabled = finalizacaoIndisponivel;
+                botaoFinalizar.title = finalizacaoIndisponivel
+                    ? 'Esta ordem já foi concluída ou cancelada.'
+                    : 'Marcar esta ordem como concluída';
+            }
+
+            modal.addEventListener('show.bs.modal', function (event) {
+                if (!event.relatedTarget) return;
+                const dados = event.relatedTarget.dataset;
+                preencherEdicao(dados);
+                configurarAcoes(dados);
+                exibirVisualizacao();
+            });
+
+            botaoEditar.addEventListener('click', exibirEdicao);
+            botaoCancelar.addEventListener('click', exibirVisualizacao);
+            formFinalizar.addEventListener('submit', function (event) {
+                if (!window.confirm('Deseja finalizar esta ordem de serviço?')) {
+                    event.preventDefault();
+                }
+            });
+
+            @if (Model.AbrirModalEdicao)
+            {
+                <text>
+                    const ordemComErro = document.querySelector('.js-ver-ordem[data-ordem-id="@Model.Edicao.Id"]');
+                    if (ordemComErro) {
+                        preencherVisualizacao(ordemComErro.dataset);
+                        configurarAcoes(ordemComErro.dataset);
+                    }
+                    exibirEdicao();
+                    bootstrap.Modal.getOrCreateInstance(modal).show();
+                </text>
+            }
         });
     </script>
 

@@ -1,0 +1,103 @@
+@model OrdemGo.Models.OrdemServico
+@{
+    Layout = null;
+    var total = Model.ValorServico + Model.ValorPecas;
+    string Exibir(string? valor) => string.IsNullOrWhiteSpace(valor) ? "—" : valor;
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@Model.NumeroOS - Ordem de serviço</title>
+    <style>
+        :root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #1d2939; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f2f4f7; }
+        .toolbar { display: flex; justify-content: flex-end; gap: 10px; max-width: 960px; margin: 20px auto 0; }
+        .toolbar button, .toolbar a { padding: 10px 16px; border: 1px solid #d0d5dd; border-radius: 7px; color: #344054; background: #fff; font: inherit; text-decoration: none; cursor: pointer; }
+        .toolbar .primary { color: #fff; background: #175cd3; border-color: #175cd3; }
+        .sheet { width: min(960px, calc(100% - 32px)); margin: 16px auto 32px; padding: 42px; background: #fff; box-shadow: 0 2px 12px rgb(16 24 40 / 10%); }
+        .header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 2px solid #175cd3; }
+        .logo { width: 150px; height: 52px; object-fit: contain; object-position: left center; }
+        .document-title { text-align: right; }
+        .document-title h1 { margin: 0; font-size: 24px; }
+        .document-title strong { display: block; margin-top: 6px; color: #175cd3; font-size: 17px; }
+        .section { margin-top: 28px; }
+        .section h2 { margin: 0 0 12px; color: #344054; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #e4e7ec; border-radius: 8px; overflow: hidden; }
+        .field { min-height: 72px; padding: 13px 15px; border-right: 1px solid #e4e7ec; border-bottom: 1px solid #e4e7ec; }
+        .field:nth-child(3n) { border-right: 0; }
+        .field.wide { grid-column: 1 / -1; border-right: 0; }
+        .field:last-child { border-bottom: 0; }
+        .field span { display: block; margin-bottom: 5px; color: #667085; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+        .field strong, .field p { margin: 0; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
+        .totals { width: min(380px, 100%); margin: 28px 0 0 auto; border: 1px solid #d0d5dd; border-radius: 8px; overflow: hidden; }
+        .total-row { display: flex; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid #e4e7ec; font-size: 14px; }
+        .total-row:last-child { border: 0; color: #175cd3; background: #eff6ff; font-size: 16px; font-weight: 700; }
+        .footer { margin-top: 50px; padding-top: 16px; border-top: 1px solid #e4e7ec; color: #667085; font-size: 11px; text-align: center; }
+        @@media (max-width: 700px) { .sheet { padding: 24px; } .grid { grid-template-columns: 1fr; } .field, .field:nth-child(3n) { border-right: 0; } .header { align-items: flex-start; flex-direction: column; } .document-title { text-align: left; } }
+        @@media print { @@page { size: A4; margin: 12mm; } body { background: #fff; } .toolbar { display: none; } .sheet { width: 100%; margin: 0; padding: 0; box-shadow: none; } .section, .field, .totals { break-inside: avoid; } }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <a asp-controller="OrdensServico" asp-action="Index">Voltar</a>
+        <button type="button" class="primary" onclick="window.print()">Imprimir</button>
+    </div>
+
+    <main class="sheet">
+        <header class="header">
+            <img class="logo" src="~/Img/OrdemGo.png" alt="OrdemGo" />
+            <div class="document-title">
+                <h1>Ordem de serviço</h1>
+                <strong>@Model.NumeroOS</strong>
+            </div>
+        </header>
+
+        <section class="section">
+            <h2>Cliente e equipamento</h2>
+            <div class="grid">
+                <div class="field"><span>Cliente</span><strong>@Model.Cliente.Nome</strong></div>
+                <div class="field"><span>CPF</span><strong>@Model.Cliente.CPF</strong></div>
+                <div class="field"><span>Telefone</span><strong>@Exibir(Model.Cliente.Telefone)</strong></div>
+                <div class="field"><span>Equipamento</span><strong>@Model.Equipamento</strong></div>
+                <div class="field"><span>Modelo</span><strong>@Model.Modelo</strong></div>
+                <div class="field"><span>Responsável ID</span><strong>@(Model.ResponsavelId?.ToString() ?? "—")</strong></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Situação da ordem</h2>
+            <div class="grid">
+                <div class="field"><span>Abertura</span><strong>@Model.DataAbertura.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                <div class="field"><span>Previsão</span><strong>@(Model.DataPrevisao?.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong></div>
+                <div class="field"><span>Conclusão</span><strong>@(Model.DataConclusao?.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong></div>
+                <div class="field"><span>Status</span><strong>@Model.Status</strong></div>
+                <div class="field"><span>Prioridade</span><strong>@Model.Prioridade</strong></div>
+                <div class="field"><span>Emitida em</span><strong>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</strong></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Atendimento técnico</h2>
+            <div class="grid">
+                <div class="field wide"><span>Descrição do problema</span><p>@Model.DescricaoProblema</p></div>
+                <div class="field wide"><span>Diagnóstico técnico</span><p>@Exibir(Model.DiagnosticoTecnico)</p></div>
+                <div class="field wide"><span>Solução aplicada</span><p>@Exibir(Model.SolucaoAplicada)</p></div>
+                <div class="field wide"><span>Observações</span><p>@Exibir(Model.Observacoes)</p></div>
+            </div>
+        </section>
+
+        <div class="totals">
+            <div class="total-row"><span>Valor do serviço</span><strong>@Model.ValorServico.ToString("C")</strong></div>
+            <div class="total-row"><span>Valor de peças</span><strong>@Model.ValorPecas.ToString("C")</strong></div>
+            <div class="total-row"><span>Total</span><strong>@total.ToString("C")</strong></div>
+        </div>
+
+        <footer class="footer">Documento gerado pelo OrdemGo.</footer>
+    </main>
+
+    <script>window.addEventListener('load', function () { window.print(); });</script>
+</body>
+</html>
