@@ -104,8 +104,47 @@ html {
   border-bottom: 0;
 }
 
-.ordens-table tbody tr:hover {
-  background: #f9fbfd;
+.ordens-table tbody .ordens-row > td {
+  background: var(--ordens-row-background);
+  transition: background-color 0.18s ease;
+}
+
+.ordens-table tbody .ordens-row > td:first-child {
+  box-shadow: inset 0.2rem 0 var(--ordens-row-accent);
+}
+
+.ordens-table tbody .ordens-row:hover > td {
+  background: var(--ordens-row-hover-background);
+}
+
+.ordens-row-open {
+  --ordens-row-accent: #2e90fa;
+  --ordens-row-background: #f8fbff;
+  --ordens-row-hover-background: #f0f7ff;
+}
+
+.ordens-row-progress {
+  --ordens-row-accent: #2e90fa;
+  --ordens-row-background: #f8fbff;
+  --ordens-row-hover-background: #eaf4ff;
+}
+
+.ordens-row-waiting {
+  --ordens-row-accent: #2e90fa;
+  --ordens-row-background: #f8fbff;
+  --ordens-row-hover-background: #eaf4ff;
+}
+
+.ordens-row-success {
+  --ordens-row-accent: #039855;
+  --ordens-row-background: #ecfdf3;
+  --ordens-row-hover-background: #d1fadf;
+}
+
+.ordens-row-neutral {
+  --ordens-row-accent: #f04438;
+  --ordens-row-background: #fff5f4;
+  --ordens-row-hover-background: #fee4e2;
 }
 
 .ordens-number {
@@ -165,20 +204,26 @@ html {
   white-space: nowrap;
 }
 
+.ordens-status-open {
+  color: #175cd3;
+  background: #eff6ff;
+}
+
+.ordens-status-progress,
+.ordens-status-waiting {
+  color: #175cd3;
+  background: #eff6ff;
+}
+
 .ordens-status-success,
 .ordens-priority-low {
   color: #067647;
   background: #ecfdf3;
 }
 
-.ordens-status-progress {
-  color: #175cd3;
-  background: #eff6ff;
-}
-
 .ordens-status-neutral {
-  color: #475467;
-  background: #f2f4f7;
+  color: #b42318;
+  background: #fef3f2;
 }
 
 .ordens-priority-normal {

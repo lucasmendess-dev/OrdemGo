@@ -69,11 +69,13 @@
                     {
                         @foreach (var ordem in Model.Ordens)
                         {
-                            var statusClass = ordem.Status.ToLowerInvariant() switch
+                            var statusVariant = ordem.Status.Trim().ToLowerInvariant() switch
                             {
-                                "concluída" or "concluida" => "ordens-status-success",
-                                "cancelada" => "ordens-status-neutral",
-                                _ => "ordens-status-progress"
+                                "em andamento" => "progress",
+                                "aguardando peças" or "aguardando pecas" => "waiting",
+                                "concluída" or "concluida" => "success",
+                                "cancelada" => "neutral",
+                                _ => "open"
                             };
                             var prioridadeClass = ordem.Prioridade.ToLowerInvariant() switch
                             {
@@ -82,7 +84,7 @@
                                 _ => "ordens-priority-normal"
                             };
 
-                            <tr>
+                            <tr class="ordens-row ordens-row-@statusVariant">
                                 <td><span class="ordens-number">@ordem.NumeroOS</span></td>
                                 <td>
                                     <div class="ordens-client-cell">
@@ -98,7 +100,7 @@
                                 </td>
                                 <td>@ordem.DataAbertura.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td><span class="ordens-priority @prioridadeClass">@ordem.Prioridade</span></td>
-                                <td><span class="ordens-status @statusClass">@ordem.Status</span></td>
+                                <td><span class="ordens-status ordens-status-@statusVariant">@ordem.Status</span></td>
                                 <td class="text-end">
                                     <div class="dropdown">
                                         <button class="clientes-actions-button"
