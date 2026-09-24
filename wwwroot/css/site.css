@@ -74,6 +74,83 @@ html {
   font-size: 0.78rem;
 }
 
+.ordens-filters,
+.clientes-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 0.35fr) minmax(190px, 0.35fr) auto;
+  gap: 0.75rem;
+  padding: 1rem 1.35rem;
+  background: #fcfcfd;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.clientes-filters {
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 0.35fr) auto;
+}
+
+.ordens-search-field,
+.clientes-search-field {
+  position: relative;
+}
+
+.ordens-search-field svg,
+.clientes-search-field svg {
+  position: absolute;
+  top: 50%;
+  left: 0.85rem;
+  z-index: 1;
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: #667085;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.ordens-search-field .form-control,
+.clientes-search-field .form-control {
+  padding-left: 2.5rem;
+}
+
+.ordens-filters .form-control,
+.ordens-filters .form-select,
+.clientes-filters .form-control,
+.clientes-filters .form-select {
+  min-height: 2.55rem;
+  color: #344054;
+  background-color: #fff;
+  border-color: #d0d5dd;
+  border-radius: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.ordens-filters .form-control::placeholder,
+.clientes-filters .form-control::placeholder {
+  color: #98a2b3;
+}
+
+.ordens-clear-filters,
+.clientes-clear-filters {
+  align-self: stretch;
+  padding-right: 0.25rem;
+  padding-left: 0.25rem;
+  color: #175cd3;
+  font-size: 0.8rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.ordens-clear-filters:hover,
+.ordens-clear-filters:focus-visible,
+.clientes-clear-filters:hover,
+.clientes-clear-filters:focus-visible {
+  color: #004eeb;
+  text-decoration: underline;
+}
+
 .ordens-table {
   min-width: 1050px;
   margin-bottom: 0;
@@ -354,8 +431,32 @@ html {
     width: 100%;
   }
 
+  .ordens-filters,
+  .clientes-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .ordens-clear-filters,
+  .clientes-clear-filters {
+    justify-self: start;
+    min-height: auto;
+  }
+
   .ordem-details-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  .ordens-filters,
+  .clientes-filters {
+    grid-template-columns: minmax(260px, 1fr) repeat(2, minmax(180px, 0.5fr));
+  }
+
+  .ordens-clear-filters,
+  .clientes-clear-filters {
+    grid-column: 1 / -1;
+    justify-self: end;
   }
 }
 

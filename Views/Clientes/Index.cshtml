@@ -39,9 +39,40 @@
     <div class="clientes-card-header">
         <div>
             <h2 id="tituloTabelaClientes">Clientes cadastrados</h2>
-            <p>@(Model.Clientes.Count == 1 ? "1 cliente encontrado" : $"{Model.Clientes.Count} clientes encontrados")</p>
+            <p id="contadorClientes" aria-live="polite">@(Model.Clientes.Count == 1 ? "1 cliente encontrado" : $"{Model.Clientes.Count} clientes encontrados")</p>
         </div>
     </div>
+
+    @if (Model.Clientes.Count > 0)
+    {
+        <div class="clientes-filters" role="search" aria-label="Pesquisar e filtrar clientes">
+            <div class="clientes-search-field">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m20 20-4-4"></path>
+                </svg>
+                <label class="visually-hidden" for="pesquisaClientes">Pesquisar clientes</label>
+                <input type="search"
+                       id="pesquisaClientes"
+                       class="form-control"
+                       placeholder="Pesquisar por nome, CPF, telefone ou e-mail"
+                       autocomplete="off" />
+            </div>
+
+            <div class="clientes-filter-field">
+                <label class="visually-hidden" for="filtroStatusClientes">Filtrar por status</label>
+                <select id="filtroStatusClientes" class="form-select" aria-label="Filtrar clientes por status">
+                    <option value="">Todos os status</option>
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                </select>
+            </div>
+
+            <button type="button" id="limparFiltrosClientes" class="btn clientes-clear-filters d-none">
+                Limpar filtros
+            </button>
+        </div>
+    }
 
     <div class="table-responsive">
         <table class="table clientes-table align-middle">
@@ -75,7 +106,9 @@
                             ? "?"
                             : cliente.Nome[..1].ToUpperInvariant();
 
-                        <tr>
+                        <tr class="clientes-row"
+                            data-pesquisa="#@cliente.Id.ToString("D4") @cliente.Nome @cliente.CPF @cliente.Telefone @cliente.Email"
+                            data-status="@cliente.Status">
                             <td><span class="clientes-id">#@cliente.Id.ToString("D4")</span></td>
                             <td>
                                 <div class="clientes-name-cell">
@@ -127,6 +160,13 @@
                             </td>
                         </tr>
                     }
+
+                    <tr id="clientesSemResultado" class="d-none">
+                        <td colspan="6" class="clientes-empty-state">
+                            <strong>Nenhum cliente encontrado</strong>
+                            <span>Tente ajustar a pesquisa ou o filtro selecionado.</span>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -328,6 +368,54 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const campoPesquisa = document.getElementById('pesquisaClientes');
+            const filtroStatus = document.getElementById('filtroStatusClientes');
+            const botaoLimparFiltros = document.getElementById('limparFiltrosClientes');
+            const contadorClientes = document.getElementById('contadorClientes');
+            const linhasClientes = Array.from(document.querySelectorAll('.clientes-row'));
+            const estadoSemResultado = document.getElementById('clientesSemResultado');
+
+            function normalizarTexto(valor) {
+                return String(valor || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLocaleLowerCase('pt-BR')
+                    .trim();
+            }
+
+            function atualizarListagem() {
+                if (!campoPesquisa || !filtroStatus) return;
+
+                const pesquisa = normalizarTexto(campoPesquisa.value);
+                const status = normalizarTexto(filtroStatus.value);
+                let quantidadeVisivel = 0;
+
+                linhasClientes.forEach(function (linha) {
+                    const correspondePesquisa = normalizarTexto(linha.dataset.pesquisa).includes(pesquisa);
+                    const correspondeStatus = !status || normalizarTexto(linha.dataset.status) === status;
+                    const deveExibir = correspondePesquisa && correspondeStatus;
+
+                    linha.classList.toggle('d-none', !deveExibir);
+                    if (deveExibir) quantidadeVisivel++;
+                });
+
+                const possuiFiltros = Boolean(pesquisa || status);
+                contadorClientes.textContent = quantidadeVisivel === 1
+                    ? '1 cliente encontrado'
+                    : `${quantidadeVisivel} clientes encontrados`;
+                estadoSemResultado?.classList.toggle('d-none', quantidadeVisivel > 0);
+                botaoLimparFiltros?.classList.toggle('d-none', !possuiFiltros);
+            }
+
+            campoPesquisa?.addEventListener('input', atualizarListagem);
+            filtroStatus?.addEventListener('change', atualizarListagem);
+            botaoLimparFiltros?.addEventListener('click', function () {
+                campoPesquisa.value = '';
+                filtroStatus.value = '';
+                atualizarListagem();
+                campoPesquisa.focus();
+            });
+
             const modalElement = document.getElementById('modalCliente');
             const formEdicao = document.getElementById('formEdicaoCliente');
             const formExclusao = document.getElementById('formExcluirCliente');

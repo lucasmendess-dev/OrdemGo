@@ -38,9 +38,54 @@
         <div class="ordens-card-header">
             <div>
                 <h2 id="tituloTabelaOrdens">Ordens cadastradas</h2>
-                <p>@(Model.Ordens.Count == 1 ? "1 ordem encontrada" : $"{Model.Ordens.Count} ordens encontradas")</p>
+                <p id="contadorOrdens" aria-live="polite">@(Model.Ordens.Count == 1 ? "1 ordem encontrada" : $"{Model.Ordens.Count} ordens encontradas")</p>
             </div>
         </div>
+
+        @if (Model.Ordens.Count > 0)
+        {
+            <div class="ordens-filters" role="search" aria-label="Pesquisar e filtrar ordens de serviço">
+                <div class="ordens-search-field">
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-4-4"></path>
+                    </svg>
+                    <label class="visually-hidden" for="pesquisaOrdens">Pesquisar ordens</label>
+                    <input type="search"
+                           id="pesquisaOrdens"
+                           class="form-control"
+                           placeholder="Pesquisar por número, cliente ou serviço"
+                           autocomplete="off" />
+                </div>
+
+                <div class="ordens-filter-field">
+                    <label class="visually-hidden" for="filtroStatusOrdens">Filtrar por status</label>
+                    <select id="filtroStatusOrdens" class="form-select" aria-label="Filtrar ordens por status">
+                        <option value="">Todos os status</option>
+                        <option value="Aberta">Aberta</option>
+                        <option value="Em andamento">Em andamento</option>
+                        <option value="Aguardando peças">Aguardando peças</option>
+                        <option value="Concluída">Concluída</option>
+                        <option value="Cancelada">Cancelada</option>
+                    </select>
+                </div>
+
+                <div class="ordens-filter-field">
+                    <label class="visually-hidden" for="filtroPrioridadeOrdens">Filtrar por prioridade</label>
+                    <select id="filtroPrioridadeOrdens" class="form-select" aria-label="Filtrar ordens por prioridade">
+                        <option value="">Todas as prioridades</option>
+                        <option value="Baixa">Baixa</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Urgente">Urgente</option>
+                    </select>
+                </div>
+
+                <button type="button" id="limparFiltrosOrdens" class="btn ordens-clear-filters d-none">
+                    Limpar filtros
+                </button>
+            </div>
+        }
 
         <div class="table-responsive">
             <table class="table ordens-table align-middle">
@@ -84,7 +129,10 @@
                                 _ => "ordens-priority-normal"
                             };
 
-                            <tr class="ordens-row ordens-row-@statusVariant">
+                            <tr class="ordens-row ordens-row-@statusVariant"
+                                data-pesquisa="@ordem.NumeroOS @ordem.Cliente.Nome @ordem.Equipamento @ordem.Modelo"
+                                data-status="@ordem.Status"
+                                data-prioridade="@ordem.Prioridade">
                                 <td><span class="ordens-number">@ordem.NumeroOS</span></td>
                                 <td>
                                     <div class="ordens-client-cell">
@@ -147,6 +195,13 @@
                                 </td>
                             </tr>
                         }
+
+                        <tr id="ordensSemResultado" class="d-none">
+                            <td colspan="7" class="ordens-empty-state">
+                                <strong>Nenhuma ordem encontrada</strong>
+                                <span>Tente ajustar a pesquisa ou os filtros selecionados.</span>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -490,6 +545,59 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const campoPesquisa = document.getElementById('pesquisaOrdens');
+            const filtroStatus = document.getElementById('filtroStatusOrdens');
+            const filtroPrioridade = document.getElementById('filtroPrioridadeOrdens');
+            const botaoLimparFiltros = document.getElementById('limparFiltrosOrdens');
+            const contadorOrdens = document.getElementById('contadorOrdens');
+            const linhasOrdens = Array.from(document.querySelectorAll('.ordens-row'));
+            const estadoSemResultado = document.getElementById('ordensSemResultado');
+
+            function normalizarTexto(valor) {
+                return String(valor || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLocaleLowerCase('pt-BR')
+                    .trim();
+            }
+
+            function atualizarListagem() {
+                if (!campoPesquisa || !filtroStatus || !filtroPrioridade) return;
+
+                const pesquisa = normalizarTexto(campoPesquisa.value);
+                const status = normalizarTexto(filtroStatus.value);
+                const prioridade = normalizarTexto(filtroPrioridade.value);
+                let quantidadeVisivel = 0;
+
+                linhasOrdens.forEach(function (linha) {
+                    const correspondePesquisa = normalizarTexto(linha.dataset.pesquisa).includes(pesquisa);
+                    const correspondeStatus = !status || normalizarTexto(linha.dataset.status) === status;
+                    const correspondePrioridade = !prioridade || normalizarTexto(linha.dataset.prioridade) === prioridade;
+                    const deveExibir = correspondePesquisa && correspondeStatus && correspondePrioridade;
+
+                    linha.classList.toggle('d-none', !deveExibir);
+                    if (deveExibir) quantidadeVisivel++;
+                });
+
+                const possuiFiltros = Boolean(pesquisa || status || prioridade);
+                contadorOrdens.textContent = quantidadeVisivel === 1
+                    ? '1 ordem encontrada'
+                    : `${quantidadeVisivel} ordens encontradas`;
+                estadoSemResultado?.classList.toggle('d-none', quantidadeVisivel > 0);
+                botaoLimparFiltros?.classList.toggle('d-none', !possuiFiltros);
+            }
+
+            campoPesquisa?.addEventListener('input', atualizarListagem);
+            filtroStatus?.addEventListener('change', atualizarListagem);
+            filtroPrioridade?.addEventListener('change', atualizarListagem);
+            botaoLimparFiltros?.addEventListener('click', function () {
+                campoPesquisa.value = '';
+                filtroStatus.value = '';
+                filtroPrioridade.value = '';
+                atualizarListagem();
+                campoPesquisa.focus();
+            });
+
             function converterDecimalBrasileiro(valor) {
                 const texto = String(valor ?? '').trim().replace(/\s/g, '');
                 if (!texto) return Number.NaN;
