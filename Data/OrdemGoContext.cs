@@ -14,8 +14,14 @@ public class OrdemGoContext : DbContext
 
     public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
 
+    public DbSet<Servico> Servicos => Set<Servico>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Servico>()
+            .Property(servico => servico.Valor)
+            .HasDefaultValue(0m);
+
         modelBuilder.Entity<OrdemServico>()
             .Property(ordem => ordem.NumeroOS)
             .HasComputedColumnSql(

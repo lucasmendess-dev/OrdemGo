@@ -27,6 +27,8 @@ builder.Services.AddScoped<ClienteDAO>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<OrdemServicoDAO>();
 builder.Services.AddScoped<OrdemServicoService>();
+builder.Services.AddScoped<ServicoDAO>();
+builder.Services.AddScoped<ServicoService>();
 
 var app = builder.Build();
 

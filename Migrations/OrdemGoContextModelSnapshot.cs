@@ -157,6 +157,32 @@ namespace OrdemGo.Migrations
                     b.ToTable("OrdensServico", "dbo");
                 });
 
+            modelBuilder.Entity("OrdemGo.Models.Servico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("TempoEstimadoHoras")
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<decimal>("Valor")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Servicos", "dbo");
+                });
+
             modelBuilder.Entity("OrdemGo.Models.OrdemServico", b =>
                 {
                     b.HasOne("OrdemGo.Models.Cliente", "Cliente")

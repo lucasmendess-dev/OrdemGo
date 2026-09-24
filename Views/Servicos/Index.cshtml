@@ -1,0 +1,419 @@
+@model OrdemGo.ViewModels.ServicosIndexViewModel
+
+@{
+    ViewData["Title"] = "Serviços";
+
+    string FormatarTempo(decimal horas)
+    {
+        return $"{horas:0.##} h";
+    }
+}
+
+<div class="servicos-page">
+    @if (TempData["MensagemSucesso"] is string mensagemSucesso)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @mensagemSucesso
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    }
+    @if (TempData["MensagemErro"] is string mensagemErro)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @mensagemErro
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    }
+
+    <div class="servicos-page-header">
+        <div>
+            <h1>Serviços</h1>
+            <p>Cadastre e gerencie os serviços oferecidos.</p>
+        </div>
+
+        <button type="button"
+                class="btn btn-primary servicos-add-button"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCadastroServico">
+            <span aria-hidden="true">+</span>
+            Adicionar novo serviço
+        </button>
+    </div>
+
+    <section class="servicos-card" aria-labelledby="tituloTabelaServicos">
+        <div class="servicos-card-header">
+            <div>
+                <h2 id="tituloTabelaServicos">Serviços cadastrados</h2>
+                <p id="contadorServicos" aria-live="polite">@(Model.Servicos.Count == 1 ? "1 serviço encontrado" : $"{Model.Servicos.Count} serviços encontrados")</p>
+            </div>
+        </div>
+
+        @if (Model.Servicos.Count > 0)
+        {
+            <div class="servicos-filters" role="search" aria-label="Pesquisar serviços">
+                <div class="servicos-search-field">
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-4-4"></path>
+                    </svg>
+                    <label class="visually-hidden" for="pesquisaServicos">Pesquisar serviços</label>
+                    <input type="search"
+                           id="pesquisaServicos"
+                           class="form-control"
+                           placeholder="Pesquisar por ID ou descrição"
+                           autocomplete="off" />
+                </div>
+
+                <button type="button" id="limparPesquisaServicos" class="btn servicos-clear-filters d-none">
+                    Limpar pesquisa
+                </button>
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table servicos-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Descrição</th>
+                        <th scope="col">Tempo estimado</th>
+                        <th scope="col">Valor</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Ações</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Servicos.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="servicos-empty-state">
+                                <strong>Nenhum serviço cadastrado</strong>
+                                <span>Adicione o primeiro serviço para começar.</span>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var servico in Model.Servicos)
+                        {
+                            <tr class="servicos-row" data-pesquisa="#@servico.Id.ToString("D4") @servico.Descricao">
+                                <td><span class="servicos-id">#@servico.Id.ToString("D4")</span></td>
+                                <td>
+                                    <div class="servicos-description-cell">
+                                        <span>@servico.Descricao</span>
+                                    </div>
+                                </td>
+                                <td><span class="servicos-time">@FormatarTempo(servico.TempoEstimadoHoras)</span></td>
+                                <td><strong class="servicos-value">@servico.Valor.ToString("C")</strong></td>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <button class="clientes-actions-button"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                                aria-label="Ações do serviço @servico.Descricao">
+                                            &#8942;
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <button type="button"
+                                                        class="dropdown-item js-ver-servico"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modalServico"
+                                                        data-servico-id="@servico.Id"
+                                                        data-servico-descricao="@servico.Descricao"
+                                                        data-servico-tempo="@servico.TempoEstimadoHoras.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                                        data-servico-valor="@servico.Valor.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)">
+                                                    Ver cadastro
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+
+                        <tr id="servicosSemResultado" class="d-none">
+                            <td colspan="5" class="servicos-empty-state">
+                                <strong>Nenhum serviço encontrado</strong>
+                                <span>Tente ajustar o termo pesquisado.</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="modal fade" id="modalCadastroServico" tabindex="-1" aria-labelledby="tituloModalCadastroServico" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-controller="Servicos" asp-action="Cadastrar" method="post">
+                <div class="modal-header">
+                    <div>
+                        <span class="servicos-modal-eyebrow">Novo serviço</span>
+                        <h2 class="modal-title fs-5" id="tituloModalCadastroServico">Dados do serviço</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Cadastro.Descricao" class="form-label"></label>
+                            <input asp-for="Cadastro.Descricao" class="form-control" autocomplete="off" />
+                            <span asp-validation-for="Cadastro.Descricao" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Cadastro.TempoEstimadoHoras" class="form-label"></label>
+                            <input asp-for="Cadastro.TempoEstimadoHoras" class="form-control" inputmode="decimal" placeholder="Ex.: 1,5" />
+                            <span asp-validation-for="Cadastro.TempoEstimadoHoras" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Cadastro.Valor" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input asp-for="Cadastro.Valor" class="form-control servico-currency-input" inputmode="decimal" />
+                            </div>
+                            <span asp-validation-for="Cadastro.Valor" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Cadastrar serviço</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalServico" tabindex="-1" aria-labelledby="tituloModalServico" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <span class="servicos-modal-eyebrow" id="codigoModalServico"></span>
+                    <h2 class="modal-title fs-5" id="tituloModalServico">Cadastro do serviço</h2>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <form asp-controller="Servicos" asp-action="Editar" method="post" id="formEdicaoServico">
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input asp-for="Edicao.Id" type="hidden" />
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Edicao.Descricao" class="form-label"></label>
+                            <input asp-for="Edicao.Descricao" class="form-control servico-detail-field" readonly />
+                            <span asp-validation-for="Edicao.Descricao" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Edicao.TempoEstimadoHoras" class="form-label"></label>
+                            <input asp-for="Edicao.TempoEstimadoHoras" class="form-control servico-detail-field" inputmode="decimal" readonly />
+                            <span asp-validation-for="Edicao.TempoEstimadoHoras" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Edicao.Valor" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input asp-for="Edicao.Valor" class="form-control servico-detail-field servico-currency-input" inputmode="decimal" readonly />
+                            </div>
+                            <span asp-validation-for="Edicao.Valor" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="modal-footer servicos-modal-footer">
+                <form asp-controller="Servicos" asp-action="Excluir" method="post" id="formExcluirServico" class="me-auto">
+                    <input type="hidden" name="id" id="excluirServicoId" />
+                    <button type="submit" class="btn btn-outline-danger">Excluir</button>
+                </form>
+                <button type="button" class="btn btn-outline-secondary d-none" id="botaoCancelarEdicaoServico">Cancelar edição</button>
+                <button type="button" class="btn btn-primary" id="botaoEditarServico">Editar</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const campoPesquisa = document.getElementById('pesquisaServicos');
+            const botaoLimparPesquisa = document.getElementById('limparPesquisaServicos');
+            const contadorServicos = document.getElementById('contadorServicos');
+            const linhasServicos = Array.from(document.querySelectorAll('.servicos-row'));
+            const estadoSemResultado = document.getElementById('servicosSemResultado');
+
+            function normalizarTexto(valor) {
+                return String(valor || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLocaleLowerCase('pt-BR')
+                    .trim();
+            }
+
+            function atualizarListagem() {
+                if (!campoPesquisa) return;
+
+                const pesquisa = normalizarTexto(campoPesquisa.value);
+                let quantidadeVisivel = 0;
+
+                linhasServicos.forEach(function (linha) {
+                    const deveExibir = normalizarTexto(linha.dataset.pesquisa).includes(pesquisa);
+                    linha.classList.toggle('d-none', !deveExibir);
+                    if (deveExibir) quantidadeVisivel++;
+                });
+
+                contadorServicos.textContent = quantidadeVisivel === 1
+                    ? '1 serviço encontrado'
+                    : `${quantidadeVisivel} serviços encontrados`;
+                estadoSemResultado?.classList.toggle('d-none', quantidadeVisivel > 0);
+                botaoLimparPesquisa?.classList.toggle('d-none', !pesquisa);
+            }
+
+            campoPesquisa?.addEventListener('input', atualizarListagem);
+            botaoLimparPesquisa?.addEventListener('click', function () {
+                campoPesquisa.value = '';
+                atualizarListagem();
+                campoPesquisa.focus();
+            });
+
+            function converterDecimalBrasileiro(valor) {
+                const texto = String(valor ?? '').trim().replace(/\s/g, '');
+                if (!texto) return Number.NaN;
+
+                const normalizado = texto.includes(',')
+                    ? texto.replace(/\./g, '').replace(',', '.')
+                    : texto;
+
+                return Number(normalizado);
+            }
+
+            if (window.jQuery && window.jQuery.validator) {
+                window.jQuery.validator.methods.number = function (value, element) {
+                    return this.optional(element) || Number.isFinite(converterDecimalBrasileiro(value));
+                };
+
+                window.jQuery.validator.methods.range = function (value, element, params) {
+                    if (this.optional(element)) return true;
+
+                    const numero = converterDecimalBrasileiro(value);
+                    const minimo = converterDecimalBrasileiro(params[0]);
+                    const maximo = converterDecimalBrasileiro(params[1]);
+                    return Number.isFinite(numero) && numero >= minimo && numero <= maximo;
+                };
+            }
+
+            document.querySelectorAll('.servico-currency-input').forEach(function (campo) {
+                campo.addEventListener('blur', function () {
+                    const numero = converterDecimalBrasileiro(campo.value);
+                    if (Number.isFinite(numero)) {
+                        campo.value = numero.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                });
+            });
+
+            const modalElement = document.getElementById('modalServico');
+            const formEdicao = document.getElementById('formEdicaoServico');
+            const formExclusao = document.getElementById('formExcluirServico');
+            const botaoEditar = document.getElementById('botaoEditarServico');
+            const botaoCancelar = document.getElementById('botaoCancelarEdicaoServico');
+            const campos = Array.from(formEdicao.querySelectorAll('.servico-detail-field'));
+            let valoresOriginais = {};
+            let editando = false;
+
+            function atualizarModoEdicao(ativo) {
+                editando = ativo;
+                campos.forEach(function (campo) { campo.readOnly = !ativo; });
+                botaoEditar.textContent = ativo ? 'Salvar alterações' : 'Editar';
+                botaoCancelar.classList.toggle('d-none', !ativo);
+                formExclusao.classList.toggle('d-none', ativo);
+
+                if (ativo) document.getElementById('Edicao_Descricao').focus();
+            }
+
+            function preencherModal(dados) {
+                document.getElementById('Edicao_Id').value = dados.servicoId || '';
+                document.getElementById('Edicao_Descricao').value = dados.servicoDescricao || '';
+                document.getElementById('Edicao_TempoEstimadoHoras').value = String(dados.servicoTempo || '').replace('.', ',');
+                document.getElementById('Edicao_Valor').value = String(dados.servicoValor || '0').replace('.', ',');
+                document.getElementById('excluirServicoId').value = dados.servicoId || '';
+                document.getElementById('codigoModalServico').textContent = dados.servicoId
+                    ? 'Serviço #' + String(dados.servicoId).padStart(4, '0')
+                    : '';
+                document.getElementById('tituloModalServico').textContent = dados.servicoDescricao || 'Cadastro do serviço';
+
+                valoresOriginais = Object.fromEntries(
+                    campos.map(function (campo) { return [campo.id, campo.value]; })
+                );
+                formEdicao.querySelectorAll('.input-validation-error').forEach(function (campo) {
+                    campo.classList.remove('input-validation-error');
+                });
+                formEdicao.querySelectorAll('.field-validation-error').forEach(function (mensagem) {
+                    mensagem.textContent = '';
+                    mensagem.classList.remove('field-validation-error');
+                    mensagem.classList.add('field-validation-valid');
+                });
+                atualizarModoEdicao(false);
+            }
+
+            modalElement.addEventListener('show.bs.modal', function (event) {
+                if (!event.relatedTarget) return;
+                preencherModal(event.relatedTarget.dataset);
+            });
+
+            botaoEditar.addEventListener('click', function () {
+                if (!editando) {
+                    atualizarModoEdicao(true);
+                    return;
+                }
+
+                formEdicao.requestSubmit();
+            });
+
+            botaoCancelar.addEventListener('click', function () {
+                campos.forEach(function (campo) {
+                    campo.value = valoresOriginais[campo.id] || '';
+                });
+                atualizarModoEdicao(false);
+            });
+
+            formExclusao.addEventListener('submit', function (event) {
+                const descricao = document.getElementById('Edicao_Descricao').value;
+                if (!window.confirm('Deseja realmente excluir o serviço ' + descricao + '?')) {
+                    event.preventDefault();
+                }
+            });
+
+            @if (Model.AbrirModalServico)
+            {
+                <text>
+                    const servicoComErro = document.querySelector('.js-ver-servico[data-servico-id="@Model.Edicao.Id"]');
+                    if (servicoComErro) preencherModal(servicoComErro.dataset);
+                    atualizarModoEdicao(true);
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                </text>
+            }
+        });
+    </script>
+
+    @if (Model.AbrirModalCadastro)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCadastroServico')).show();
+            });
+        </script>
+    }
+}
