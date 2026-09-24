@@ -8,6 +8,8 @@ public class OrdensServicoIndexViewModel
 
     public IReadOnlyList<Cliente> Clientes { get; set; } = [];
 
+    public IReadOnlyList<Servico> ServicosDisponiveis { get; set; } = [];
+
     public OrdemServicoCadastroViewModel Cadastro { get; set; } = new();
 
     public OrdemServicoEdicaoViewModel Edicao { get; set; } = new();

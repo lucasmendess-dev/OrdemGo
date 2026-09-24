@@ -182,6 +182,8 @@
                                                         data-ordem-conclusao-input="@(ordem.DataConclusao?.ToString("yyyy-MM-ddTHH:mm"))"
                                                         data-ordem-status="@ordem.Status"
                                                         data-ordem-prioridade="@ordem.Prioridade"
+                                                        data-ordem-servico-ids="@string.Join(",", ordem.Servicos.Select(item => item.ServicoId))"
+                                                        data-ordem-servicos="@string.Join(" • ", ordem.Servicos.OrderBy(item => item.Servico.Descricao).Select(item => $"{item.Servico.Descricao} — {item.Valor:C}"))"
                                                         data-ordem-observacoes="@ordem.Observacoes"
                                                         data-ordem-valor-servico="@ordem.ValorServico.ToString("N2")"
                                                         data-ordem-valor-servico-input="@ordem.ValorServico.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
@@ -281,6 +283,82 @@
                     </div>
 
                     <div class="ordem-form-section">
+                        <h3>Serviços</h3>
+                        @if (Model.ServicosDisponiveis.Count == 0)
+                        {
+                            <div class="ordem-services-empty">
+                                Nenhum serviço cadastrado.
+                                <a asp-controller="Servicos" asp-action="Index">Cadastrar serviço</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="dropdown ordem-services-dropdown">
+                                <button type="button"
+                                        id="seletorServicosCadastro"
+                                        class="form-select text-start ordem-services-toggle"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-auto-close="outside"
+                                        data-bs-boundary="viewport"
+                                        aria-expanded="false">
+                                    <span id="resumoServicosCadastro">Selecione os serviços</span>
+                                </button>
+                                <div class="dropdown-menu ordem-services-menu" aria-labelledby="seletorServicosCadastro">
+                                    <div class="ordem-services-menu-header">Selecione um ou mais serviços</div>
+                                    <div class="ordem-services-search">
+                                        <label class="visually-hidden" for="pesquisaServicosCadastro">Pesquisar serviços</label>
+                                        <input type="search"
+                                               id="pesquisaServicosCadastro"
+                                               class="form-control"
+                                               placeholder="Pesquisar serviço"
+                                               autocomplete="off" />
+                                    </div>
+                                    <div class="ordem-services-list">
+                                        @foreach (var servico in Model.ServicosDisponiveis)
+                                        {
+                                            <label class="ordem-service-option" for="cadastroServico_@servico.Id">
+                                                <input type="checkbox"
+                                                       id="cadastroServico_@servico.Id"
+                                                       name="Cadastro.ServicoIds"
+                                                       value="@servico.Id"
+                                                       data-descricao="@servico.Descricao"
+                                                       data-valor="@servico.Valor.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                                       class="form-check-input js-servico-cadastro"
+                                                       checked="@(Model.Cadastro.ServicoIds.Contains(servico.Id))" />
+                                                <span>
+                                                    <strong>@servico.Descricao</strong>
+                                                    <small>@servico.TempoEstimadoHoras.ToString("0.##") h · @servico.Valor.ToString("C")</small>
+                                                </span>
+                                            </label>
+                                        }
+                                        <div id="nenhumServicoCadastro" class="ordem-services-no-results d-none">
+                                            Nenhum serviço encontrado.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ordem-selected-services" aria-live="polite">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Serviço</th>
+                                            <th scope="col" class="text-end">Valor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelaServicosCadastro"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th scope="row">Total</th>
+                                            <td id="totalServicosCadastro" class="text-end">R$ 0,00</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        <span asp-validation-for="Cadastro.ServicoIds" class="text-danger"></span>
+                    </div>
+
+                    <div class="ordem-form-section">
                         <h3>Prazo e situação</h3>
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -332,9 +410,9 @@
                                     <input asp-for="Cadastro.ValorServico"
                                            asp-format="{0:N2}"
                                            type="text"
-                                           inputmode="decimal"
-                                           class="form-control ordem-currency-input"
-                                           autocomplete="off" />
+                                           class="form-control"
+                                           readonly
+                                           aria-label="Valor total dos serviços selecionados" />
                                 </div>
                                 <span asp-validation-for="Cadastro.ValorServico" class="text-danger"></span>
                             </div>
@@ -393,6 +471,7 @@
                     <div class="ordem-detail"><span>Prioridade</span><strong id="detalhePrioridade"></strong></div>
                     <div class="ordem-detail"><span>Valor do serviço</span><strong id="detalheValorServico"></strong></div>
                     <div class="ordem-detail"><span>Valor de peças</span><strong id="detalheValorPecas"></strong></div>
+                    <div class="ordem-detail ordem-detail-wide"><span>Serviços selecionados</span><p id="detalheServicos"></p></div>
                     <div class="ordem-detail ordem-detail-wide"><span>Descrição do problema</span><p id="detalheDescricao"></p></div>
                     <div class="ordem-detail ordem-detail-wide"><span>Diagnóstico técnico</span><p id="detalheDiagnostico"></p></div>
                     <div class="ordem-detail ordem-detail-wide"><span>Solução aplicada</span><p id="detalheSolucao"></p></div>
@@ -457,6 +536,82 @@
                     </div>
 
                     <div class="ordem-form-section">
+                        <h3>Serviços</h3>
+                        @if (Model.ServicosDisponiveis.Count == 0)
+                        {
+                            <div class="ordem-services-empty">
+                                Nenhum serviço cadastrado.
+                                <a asp-controller="Servicos" asp-action="Index">Cadastrar serviço</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="dropdown ordem-services-dropdown">
+                                <button type="button"
+                                        id="seletorServicosEdicao"
+                                        class="form-select text-start ordem-services-toggle"
+                                        data-bs-toggle="dropdown"
+                                        data-bs-auto-close="outside"
+                                        data-bs-boundary="viewport"
+                                        aria-expanded="false">
+                                    <span id="resumoServicosEdicao">Selecione os serviços</span>
+                                </button>
+                                <div class="dropdown-menu ordem-services-menu" aria-labelledby="seletorServicosEdicao">
+                                    <div class="ordem-services-menu-header">Selecione um ou mais serviços</div>
+                                    <div class="ordem-services-search">
+                                        <label class="visually-hidden" for="pesquisaServicosEdicao">Pesquisar serviços</label>
+                                        <input type="search"
+                                               id="pesquisaServicosEdicao"
+                                               class="form-control"
+                                               placeholder="Pesquisar serviço"
+                                               autocomplete="off" />
+                                    </div>
+                                    <div class="ordem-services-list">
+                                        @foreach (var servico in Model.ServicosDisponiveis)
+                                        {
+                                            <label class="ordem-service-option" for="edicaoServico_@servico.Id">
+                                                <input type="checkbox"
+                                                       id="edicaoServico_@servico.Id"
+                                                       name="Edicao.ServicoIds"
+                                                       value="@servico.Id"
+                                                       data-descricao="@servico.Descricao"
+                                                       data-valor="@servico.Valor.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                                       class="form-check-input js-servico-edicao"
+                                                       checked="@(Model.Edicao.ServicoIds.Contains(servico.Id))" />
+                                                <span>
+                                                    <strong>@servico.Descricao</strong>
+                                                    <small>@servico.TempoEstimadoHoras.ToString("0.##") h · @servico.Valor.ToString("C")</small>
+                                                </span>
+                                            </label>
+                                        }
+                                        <div id="nenhumServicoEdicao" class="ordem-services-no-results d-none">
+                                            Nenhum serviço encontrado.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ordem-selected-services" aria-live="polite">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Serviço</th>
+                                            <th scope="col" class="text-end">Valor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelaServicosEdicao"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th scope="row">Total</th>
+                                            <td id="totalServicosEdicao" class="text-end">R$ 0,00</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        <span asp-validation-for="Edicao.ServicoIds" class="text-danger"></span>
+                    </div>
+
+                    <div class="ordem-form-section">
                         <h3>Prazo e situação</h3>
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -505,7 +660,7 @@
                                 <label asp-for="Edicao.ValorServico" class="form-label"></label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
-                                    <input asp-for="Edicao.ValorServico" asp-format="{0:N2}" type="text" inputmode="decimal" class="form-control ordem-currency-input" autocomplete="off" />
+                                    <input asp-for="Edicao.ValorServico" asp-format="{0:N2}" type="text" class="form-control" readonly aria-label="Valor total dos serviços selecionados" />
                                 </div>
                                 <span asp-validation-for="Edicao.ValorServico" class="text-danger"></span>
                             </div>
@@ -636,6 +791,152 @@
                 });
             });
 
+            function formatarMoeda(valor) {
+                return Number(valor || 0).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                });
+            }
+
+            function renderizarTabelaServicos(contexto, selecionados, total) {
+                const sufixo = contexto === 'cadastro' ? 'Cadastro' : 'Edicao';
+                const corpoTabela = document.getElementById(`tabelaServicos${sufixo}`);
+                const totalTabela = document.getElementById(`totalServicos${sufixo}`);
+                if (!corpoTabela || !totalTabela) return;
+
+                corpoTabela.replaceChildren();
+
+                if (selecionados.length === 0) {
+                    const linhaVazia = document.createElement('tr');
+                    const celulaVazia = document.createElement('td');
+                    celulaVazia.colSpan = 2;
+                    celulaVazia.className = 'ordem-selected-services-empty';
+                    celulaVazia.textContent = 'Nenhum serviço selecionado.';
+                    linhaVazia.appendChild(celulaVazia);
+                    corpoTabela.appendChild(linhaVazia);
+                } else {
+                    selecionados.forEach(function (checkbox) {
+                        const linha = document.createElement('tr');
+                        const descricao = document.createElement('td');
+                        const valor = document.createElement('td');
+
+                        descricao.textContent = checkbox.dataset.descricao;
+                        valor.className = 'text-end';
+                        valor.textContent = formatarMoeda(checkbox.dataset.valor);
+                        linha.append(descricao, valor);
+                        corpoTabela.appendChild(linha);
+                    });
+                }
+
+                totalTabela.textContent = formatarMoeda(total);
+            }
+
+            function filtrarServicos(contexto) {
+                const sufixo = contexto === 'cadastro' ? 'Cadastro' : 'Edicao';
+                const campoPesquisa = document.getElementById(`pesquisaServicos${sufixo}`);
+                const estadoSemResultado = document.getElementById(`nenhumServico${sufixo}`);
+                if (!campoPesquisa || !estadoSemResultado) return;
+
+                const pesquisa = normalizarTexto(campoPesquisa.value);
+                let quantidadeVisivel = 0;
+
+                document.querySelectorAll(`.js-servico-${contexto}`).forEach(function (checkbox) {
+                    const opcao = checkbox.closest('.ordem-service-option');
+                    const deveExibir = normalizarTexto(checkbox.dataset.descricao).includes(pesquisa);
+                    opcao.classList.toggle('d-none', !deveExibir);
+                    if (deveExibir) quantidadeVisivel++;
+                });
+
+                estadoSemResultado.classList.toggle('d-none', quantidadeVisivel > 0);
+            }
+
+            function configurarPesquisaServicos(contexto) {
+                const sufixo = contexto === 'cadastro' ? 'Cadastro' : 'Edicao';
+                const campoPesquisa = document.getElementById(`pesquisaServicos${sufixo}`);
+                if (!campoPesquisa) return;
+
+                campoPesquisa.addEventListener('input', function () {
+                    filtrarServicos(contexto);
+                });
+
+                const dropdown = campoPesquisa.closest('.ordem-services-dropdown');
+                dropdown.addEventListener('shown.bs.dropdown', function () {
+                    campoPesquisa.focus();
+                });
+                dropdown.addEventListener('hidden.bs.dropdown', function () {
+                    campoPesquisa.value = '';
+                    filtrarServicos(contexto);
+                });
+            }
+
+            function atualizarValorServicos(contexto) {
+                const checkboxes = document.querySelectorAll(`.js-servico-${contexto}`);
+                const selecionados = Array.from(checkboxes)
+                    .filter(function (checkbox) { return checkbox.checked; });
+                const total = selecionados
+                    .reduce(function (soma, checkbox) {
+                        return soma + Number(checkbox.dataset.valor || 0);
+                    }, 0);
+                const prefixo = contexto === 'cadastro' ? 'Cadastro' : 'Edicao';
+                const campoValor = document.getElementById(`${prefixo}_ValorServico`);
+                const sufixo = contexto === 'cadastro' ? 'Cadastro' : 'Edicao';
+                const resumo = document.getElementById(`resumoServicos${sufixo}`);
+                const seletor = document.getElementById(`seletorServicos${sufixo}`);
+
+                if (campoValor) {
+                    campoValor.value = total.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+
+                if (resumo && seletor) {
+                    if (selecionados.length === 0) {
+                        resumo.textContent = 'Selecione os serviços';
+                    } else if (selecionados.length === 1) {
+                        resumo.textContent = selecionados[0].dataset.descricao;
+                    } else {
+                        resumo.textContent = `${selecionados.length} serviços selecionados`;
+                    }
+
+                    seletor.classList.toggle('has-selection', selecionados.length > 0);
+                    seletor.setAttribute(
+                        'aria-label',
+                        selecionados.length === 0
+                            ? 'Selecionar serviços'
+                            : `${selecionados.length} serviços selecionados`
+                    );
+                }
+
+                renderizarTabelaServicos(contexto, selecionados, total);
+            }
+
+            function selecionarServicosEdicao(ids) {
+                const idsSelecionados = new Set(
+                    String(ids || '').split(',').filter(Boolean)
+                );
+
+                document.querySelectorAll('.js-servico-edicao').forEach(function (checkbox) {
+                    checkbox.checked = idsSelecionados.has(checkbox.value);
+                });
+                atualizarValorServicos('edicao');
+            }
+
+            document.querySelectorAll('.js-servico-cadastro').forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    atualizarValorServicos('cadastro');
+                });
+            });
+            document.querySelectorAll('.js-servico-edicao').forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    atualizarValorServicos('edicao');
+                });
+            });
+            configurarPesquisaServicos('cadastro');
+            configurarPesquisaServicos('edicao');
+            atualizarValorServicos('cadastro');
+            atualizarValorServicos('edicao');
+
             const modal = document.getElementById('modalOrdem');
             const valorOuTraco = function (valor) { return valor || '—'; };
 
@@ -656,6 +957,7 @@
                 document.getElementById('detalhePrioridade').textContent = dados.ordemPrioridade;
                 document.getElementById('detalheValorServico').textContent = 'R$ ' + dados.ordemValorServico;
                 document.getElementById('detalheValorPecas').textContent = 'R$ ' + dados.ordemValorPecas;
+                document.getElementById('detalheServicos').textContent = valorOuTraco(dados.ordemServicos);
                 document.getElementById('detalheDescricao').textContent = dados.ordemDescricao;
                 document.getElementById('detalheDiagnostico').textContent = valorOuTraco(dados.ordemDiagnostico);
                 document.getElementById('detalheSolucao').textContent = valorOuTraco(dados.ordemSolucao);
@@ -714,8 +1016,8 @@
                 definirValor('Edicao_Status', dados.ordemStatus);
                 definirValor('Edicao_Prioridade', dados.ordemPrioridade);
                 definirValor('Edicao_Observacoes', dados.ordemObservacoes);
-                definirValor('Edicao_ValorServico', dados.ordemValorServicoInput.replace('.', ','));
                 definirValor('Edicao_ValorPecas', dados.ordemValorPecasInput.replace('.', ','));
+                selecionarServicosEdicao(dados.ordemServicoIds);
             }
 
             function preencherVisualizacao(dados) {
@@ -733,6 +1035,7 @@
                 document.getElementById('detalhePrioridade').textContent = dados.ordemPrioridade;
                 document.getElementById('detalheValorServico').textContent = 'R$ ' + dados.ordemValorServico;
                 document.getElementById('detalheValorPecas').textContent = 'R$ ' + dados.ordemValorPecas;
+                document.getElementById('detalheServicos').textContent = valorOuTraco(dados.ordemServicos);
                 document.getElementById('detalheDescricao').textContent = dados.ordemDescricao;
                 document.getElementById('detalheDiagnostico').textContent = valorOuTraco(dados.ordemDiagnostico);
                 document.getElementById('detalheSolucao').textContent = valorOuTraco(dados.ordemSolucao);
@@ -778,6 +1081,7 @@
                         preencherVisualizacao(ordemComErro.dataset);
                         configurarAcoes(ordemComErro.dataset);
                     }
+                    selecionarServicosEdicao('@string.Join(",", Model.Edicao.ServicoIds)');
                     exibirEdicao();
                     bootstrap.Modal.getOrCreateInstance(modal).show();
                 </text>

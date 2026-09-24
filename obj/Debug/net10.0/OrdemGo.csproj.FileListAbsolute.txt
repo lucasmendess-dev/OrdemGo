@@ -322,4 +322,4 @@ C:\Projetos\OrdemGo\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.Workspaces.MSBui
 C:\Projetos\OrdemGo\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Projetos\OrdemGo\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Projetos\OrdemGo\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
-C:\Projetos\OrdemGo\obj\Debug\net10.0\compressed\xqv8k3k1y2-{0}-idj536ma4q-idj536ma4q.gz
+C:\Projetos\OrdemGo\obj\Debug\net10.0\compressed\xqv8k3k1y2-{0}-qp0w8hxivs-qp0w8hxivs.gz

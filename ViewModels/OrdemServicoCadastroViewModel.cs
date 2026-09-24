@@ -4,6 +4,10 @@ namespace OrdemGo.ViewModels;
 
 public class OrdemServicoCadastroViewModel
 {
+    [MinLength(1, ErrorMessage = "Selecione pelo menos um serviço.")]
+    [Display(Name = "Serviços")]
+    public List<int> ServicoIds { get; set; } = [];
+
     [Range(1, int.MaxValue, ErrorMessage = "Selecione o cliente.")]
     [Display(Name = "Cliente")]
     public int ClienteId { get; set; }
@@ -55,7 +59,6 @@ public class OrdemServicoCadastroViewModel
     [Display(Name = "Observações")]
     public string? Observacoes { get; set; }
 
-    [Range(typeof(decimal), "0", "9999999999999999", ErrorMessage = "O valor do serviço não pode ser negativo.")]
     [Display(Name = "Valor do serviço")]
     public decimal ValorServico { get; set; } = 0m;
 

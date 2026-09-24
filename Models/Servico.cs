@@ -18,4 +18,6 @@ public class Servico
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal Valor { get; set; }
+
+    public ICollection<OrdemServicoServico> OrdensServico { get; set; } = [];
 }

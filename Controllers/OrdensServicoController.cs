@@ -10,13 +10,16 @@ public class OrdensServicoController : Controller
 {
     private readonly OrdemServicoService _ordemServicoService;
     private readonly ClienteService _clienteService;
+    private readonly ServicoService _servicoService;
 
     public OrdensServicoController(
         OrdemServicoService ordemServicoService,
-        ClienteService clienteService)
+        ClienteService clienteService,
+        ServicoService servicoService)
     {
         _ordemServicoService = ordemServicoService;
         _clienteService = clienteService;
+        _servicoService = servicoService;
     }
 
     public async Task<IActionResult> Index()
@@ -31,11 +34,17 @@ public class OrdensServicoController : Controller
     {
         ValidarDatas(cadastro, "Cadastro");
 
+        var servicosSelecionados = await ObterServicosSelecionadosAsync(
+            cadastro.ServicoIds,
+            "Cadastro.ServicoIds");
+
         if (ModelState.IsValid)
         {
             try
             {
-                await _ordemServicoService.CadastrarAsync(CriarOrdem(cadastro));
+                await _ordemServicoService.CadastrarAsync(
+                    CriarOrdem(cadastro),
+                    servicosSelecionados);
                 TempData["MensagemSucesso"] = "Ordem de serviço cadastrada com sucesso.";
                 return RedirectToAction(nameof(Index));
             }
@@ -60,11 +69,17 @@ public class OrdensServicoController : Controller
     {
         ValidarDatas(edicao, "Edicao");
 
+        var servicosSelecionados = await ObterServicosSelecionadosAsync(
+            edicao.ServicoIds,
+            "Edicao.ServicoIds");
+
         if (ModelState.IsValid)
         {
             try
             {
-                if (!await _ordemServicoService.EditarAsync(CriarOrdem(edicao, edicao.Id)))
+                if (!await _ordemServicoService.EditarAsync(
+                        CriarOrdem(edicao, edicao.Id),
+                        servicosSelecionados))
                 {
                     return NotFound();
                 }
@@ -118,8 +133,29 @@ public class OrdensServicoController : Controller
         return new OrdensServicoIndexViewModel
         {
             Ordens = await _ordemServicoService.ListarAsync(),
-            Clientes = await _clienteService.ListarAsync()
+            Clientes = await _clienteService.ListarAsync(),
+            ServicosDisponiveis = await _servicoService.ListarAsync()
         };
+    }
+
+    private async Task<IReadOnlyCollection<Servico>> ObterServicosSelecionadosAsync(
+        IReadOnlyCollection<int> servicoIds,
+        string chaveModelState)
+    {
+        var idsUnicos = servicoIds.Distinct().ToArray();
+        if (idsUnicos.Length == 0)
+        {
+            ModelState.AddModelError(chaveModelState, "Selecione pelo menos um serviço.");
+            return [];
+        }
+
+        var servicos = await _servicoService.ListarPorIdsAsync(idsUnicos);
+        if (servicos.Count != idsUnicos.Length)
+        {
+            ModelState.AddModelError(chaveModelState, "Um ou mais serviços selecionados são inválidos.");
+        }
+
+        return servicos;
     }
 
     private void ValidarDatas(OrdemServicoCadastroViewModel dados, string prefixo)
@@ -159,7 +195,6 @@ public class OrdensServicoController : Controller
             Status = dados.Status,
             Prioridade = dados.Prioridade,
             Observacoes = dados.Observacoes,
-            ValorServico = dados.ValorServico,
             ValorPecas = dados.ValorPecas
         };
     }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OrdemGo")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cb26d2953dfeb7e361c7504fca71e19b70c8d9b1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c67bd065b32afd6461b32750896bd9f2d630fcbe")]
 [assembly: System.Reflection.AssemblyProductAttribute("OrdemGo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OrdemGo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

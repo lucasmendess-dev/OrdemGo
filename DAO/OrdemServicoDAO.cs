@@ -18,6 +18,8 @@ public class OrdemServicoDAO
         return await _context.OrdensServico
             .AsNoTracking()
             .Include(ordem => ordem.Cliente)
+            .Include(ordem => ordem.Servicos)
+                .ThenInclude(item => item.Servico)
             .OrderByDescending(ordem => ordem.DataAbertura)
             .ThenByDescending(ordem => ordem.Id)
             .ToListAsync();
@@ -49,7 +51,9 @@ public class OrdemServicoDAO
 
     public Task<OrdemServico?> ObterPorIdAsync(int id)
     {
-        return _context.OrdensServico.FirstOrDefaultAsync(ordem => ordem.Id == id);
+        return _context.OrdensServico
+            .Include(ordem => ordem.Servicos)
+            .FirstOrDefaultAsync(ordem => ordem.Id == id);
     }
 
     public Task<OrdemServico?> ObterDetalhesAsync(int id)
@@ -57,6 +61,8 @@ public class OrdemServicoDAO
         return _context.OrdensServico
             .AsNoTracking()
             .Include(ordem => ordem.Cliente)
+            .Include(ordem => ordem.Servicos)
+                .ThenInclude(item => item.Servico)
             .FirstOrDefaultAsync(ordem => ordem.Id == id);
     }
 

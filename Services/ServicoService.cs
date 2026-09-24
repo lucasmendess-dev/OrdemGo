@@ -17,6 +17,11 @@ public class ServicoService
         return _servicoDAO.ListarAsync();
     }
 
+    public Task<IReadOnlyList<Servico>> ListarPorIdsAsync(IEnumerable<int> ids)
+    {
+        return _servicoDAO.ListarPorIdsAsync(ids);
+    }
+
     public Task CadastrarAsync(Servico servico)
     {
         Normalizar(servico);

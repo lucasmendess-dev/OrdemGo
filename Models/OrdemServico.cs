@@ -58,4 +58,6 @@ public class OrdemServico
 
     [ForeignKey(nameof(ClienteId))]
     public Cliente Cliente { get; set; } = null!;
+
+    public ICollection<OrdemServicoServico> Servicos { get; set; } = [];
 }

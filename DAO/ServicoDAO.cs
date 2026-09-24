@@ -21,6 +21,16 @@ public class ServicoDAO
             .ToListAsync();
     }
 
+    public async Task<IReadOnlyList<Servico>> ListarPorIdsAsync(IEnumerable<int> ids)
+    {
+        var idsUnicos = ids.Distinct().ToArray();
+
+        return await _context.Servicos
+            .AsNoTracking()
+            .Where(servico => idsUnicos.Contains(servico.Id))
+            .ToListAsync();
+    }
+
     public async Task AdicionarAsync(Servico servico)
     {
         await _context.Servicos.AddAsync(servico);

@@ -16,8 +16,25 @@ public class OrdemGoContext : DbContext
 
     public DbSet<Servico> Servicos => Set<Servico>();
 
+    public DbSet<OrdemServicoServico> OrdensServicoServicos => Set<OrdemServicoServico>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<OrdemServicoServico>()
+            .HasKey(item => new { item.OrdemServicoId, item.ServicoId });
+
+        modelBuilder.Entity<OrdemServicoServico>()
+            .HasOne(item => item.OrdemServico)
+            .WithMany(ordem => ordem.Servicos)
+            .HasForeignKey(item => item.OrdemServicoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OrdemServicoServico>()
+            .HasOne(item => item.Servico)
+            .WithMany(servico => servico.OrdensServico)
+            .HasForeignKey(item => item.ServicoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<Servico>()
             .Property(servico => servico.Valor)
             .HasDefaultValue(0m);

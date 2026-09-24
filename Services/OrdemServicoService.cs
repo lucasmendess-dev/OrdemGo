@@ -22,9 +22,12 @@ public class OrdemServicoService
         return _ordemServicoDAO.ContarPorStatusAsync();
     }
 
-    public Task CadastrarAsync(OrdemServico ordem)
+    public Task CadastrarAsync(
+        OrdemServico ordem,
+        IReadOnlyCollection<Servico> servicosSelecionados)
     {
         Normalizar(ordem);
+        DefinirServicos(ordem, servicosSelecionados);
 
         return _ordemServicoDAO.AdicionarAsync(ordem);
     }
@@ -34,7 +37,9 @@ public class OrdemServicoService
         return _ordemServicoDAO.ObterDetalhesAsync(id);
     }
 
-    public async Task<bool> EditarAsync(OrdemServico ordemAtualizada)
+    public async Task<bool> EditarAsync(
+        OrdemServico ordemAtualizada,
+        IReadOnlyCollection<Servico> servicosSelecionados)
     {
         var ordem = await _ordemServicoDAO.ObterPorIdAsync(ordemAtualizada.Id);
         if (ordem is null)
@@ -55,8 +60,8 @@ public class OrdemServicoService
         ordem.Status = ordemAtualizada.Status;
         ordem.Prioridade = ordemAtualizada.Prioridade;
         ordem.Observacoes = ordemAtualizada.Observacoes;
-        ordem.ValorServico = ordemAtualizada.ValorServico;
         ordem.ValorPecas = ordemAtualizada.ValorPecas;
+        DefinirServicos(ordem, servicosSelecionados);
         Normalizar(ordem);
 
         await _ordemServicoDAO.SalvarAlteracoesAsync();
@@ -93,6 +98,24 @@ public class OrdemServicoService
         ordem.Status = ordem.Status.Trim();
         ordem.Prioridade = ordem.Prioridade.Trim();
         ordem.Observacoes = LimparCampoOpcional(ordem.Observacoes);
+    }
+
+    private static void DefinirServicos(
+        OrdemServico ordem,
+        IReadOnlyCollection<Servico> servicosSelecionados)
+    {
+        ordem.Servicos.Clear();
+
+        foreach (var servico in servicosSelecionados)
+        {
+            ordem.Servicos.Add(new OrdemServicoServico
+            {
+                ServicoId = servico.Id,
+                Valor = servico.Valor
+            });
+        }
+
+        ordem.ValorServico = servicosSelecionados.Sum(servico => servico.Valor);
     }
 
     private static string? LimparCampoOpcional(string? valor)

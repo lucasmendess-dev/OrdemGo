@@ -394,6 +394,198 @@ html {
   text-transform: uppercase;
 }
 
+.ordem-services-dropdown {
+  width: 100%;
+}
+
+.ordem-services-toggle {
+  display: block;
+  width: 100%;
+  min-height: 2.55rem;
+  color: #667085;
+  background-color: #fff;
+  border-color: #d0d5dd;
+  font-size: 0.84rem;
+}
+
+.ordem-services-toggle span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ordem-services-toggle.has-selection {
+  color: #344054;
+  font-weight: 600;
+}
+
+.ordem-services-menu {
+  width: 100%;
+  min-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border-color: #d0d5dd;
+  border-radius: 0.4rem;
+  box-shadow: 0 0.65rem 1.5rem rgba(16, 24, 40, 0.14);
+}
+
+.ordem-services-menu-header {
+  padding: 0.7rem 0.85rem;
+  color: #667085;
+  background: #f8fafc;
+  border-bottom: 1px solid #eaecf0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.ordem-services-search {
+  padding: 0.65rem;
+  background: #fff;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.ordem-services-search .form-control {
+  min-height: 2.35rem;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+  border-color: #d0d5dd;
+  font-size: 0.8rem;
+}
+
+.ordem-services-search .form-control::placeholder {
+  color: #98a2b3;
+}
+
+.ordem-services-list {
+  max-height: 16rem;
+  padding: 0.35rem;
+  overflow-y: auto;
+}
+
+.ordem-services-no-results {
+  padding: 1rem 0.75rem;
+  color: #98a2b3;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.ordem-service-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.65rem 0.7rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.ordem-service-option:hover {
+  background: #f5f9ff;
+}
+
+.ordem-service-option:has(.form-check-input:checked) {
+  background: #eff6ff;
+}
+
+.ordem-service-option .form-check-input {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+
+.ordem-service-option span,
+.ordem-service-option strong,
+.ordem-service-option small {
+  display: block;
+  min-width: 0;
+}
+
+.ordem-service-option strong {
+  color: #1d2939;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.ordem-service-option small {
+  margin-top: 0.2rem;
+  color: #667085;
+  font-size: 0.74rem;
+}
+
+.ordem-selected-services {
+  margin-top: 0.8rem;
+  overflow: hidden;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.35rem;
+}
+
+.ordem-selected-services th,
+.ordem-selected-services td {
+  padding: 0.65rem 0.8rem;
+  border-bottom-color: #eef1f4;
+  font-size: 0.78rem;
+}
+
+.ordem-selected-services thead th {
+  color: #667085;
+  background: #f8fafc;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ordem-selected-services tbody td:first-child {
+  color: #344054;
+  font-weight: 600;
+}
+
+.ordem-selected-services tbody td:last-child,
+.ordem-selected-services tfoot td {
+  color: #475467;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ordem-selected-services tfoot th,
+.ordem-selected-services tfoot td {
+  color: #175cd3;
+  background: #eff6ff;
+  border-bottom: 0;
+  font-weight: 700;
+}
+
+.ordem-selected-services-empty {
+  padding: 1rem !important;
+  color: #98a2b3 !important;
+  font-weight: 400 !important;
+  text-align: center;
+}
+
+.ordem-services-empty {
+  padding: 1rem;
+  color: #667085;
+  background: #f8fafc;
+  border: 1px dashed #d0d5dd;
+  border-radius: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.ordem-services-empty a {
+  margin-left: 0.25rem;
+  color: #175cd3;
+  font-weight: 650;
+}
+
+#Cadastro_ValorServico[readonly],
+#Edicao_ValorServico[readonly] {
+  color: #344054;
+  background: #f8fafc;
+}
+
 .ordem-details-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -460,6 +652,7 @@ html {
   .ordem-details-grid {
     grid-template-columns: 1fr;
   }
+
 }
 
 @media (min-width: 768px) and (max-width: 1199.98px) {
